@@ -6,15 +6,15 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-// Removed Label import as it is replaced with a native label element
 import { useToast } from "@/hooks/use-toast"
 import { Loader2, Plus, X } from "lucide-react"
 
 interface R1FormProps {
+  category: string
   onSuccess?: () => void
 }
 
-export function R1Form({ onSuccess }: R1FormProps) {
+export function R1Form({ category, onSuccess }: R1FormProps) {
   const [jobTitle, setJobTitle] = useState("")
   const [jobDescription, setJobDescription] = useState("")
   const [coverLetter, setCoverLetter] = useState("")
@@ -36,7 +36,7 @@ export function R1Form({ onSuccess }: R1FormProps) {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch("/api/knowledge/r1", {
+      const response = await fetch(`/api/knowledge/${category}/r1`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -11,10 +11,11 @@ import { useToast } from "@/hooks/use-toast"
 import { Loader2, Plus, X } from "lucide-react"
 
 interface R2FormProps {
+  category: string
   onSuccess?: () => void
 }
 
-export function R2Form({ onSuccess }: R2FormProps) {
+export function R2Form({ category, onSuccess }: R2FormProps) {
   const [projectTitle, setProjectTitle] = useState("")
   const [projectDescription, setProjectDescription] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -35,7 +36,7 @@ export function R2Form({ onSuccess }: R2FormProps) {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch("/api/knowledge/r2", {
+      const response = await fetch(`/api/knowledge/${category}/r2`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

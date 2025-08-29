@@ -1,24 +1,45 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { Send, Loader2, Sparkles } from 'lucide-react'
+import { Send, Loader2, Sparkles } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Label, Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function ChatPage() {
   const [jobDescription, setJobDescription] = useState("")
   const [coverLetter, setCoverLetter] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
   const [clientName, setClientName] = useState("")
-  const [jobTitle, setJobTitle] = useState("") // New state for job title
+  const [jobTitle, setJobTitle] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState<string>("web")
   const { toast } = useToast()
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // Auto-resize textarea function
+  const adjustTextareaHeight = () => {
+    const textarea = textareaRef.current
+    if (textarea) {
+      textarea.style.height = "auto"
+      textarea.style.height = `${Math.max(textarea.scrollHeight, 120)}px` // Minimum height of 120px
+    }
+  }
+
+  // Adjust height when content changes
+  useEffect(() => {
+    adjustTextareaHeight()
+  }, [jobDescription])
+
+  const handleJobDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setJobDescription(e.target.value)
+  }
 
   const handleGenerate = async () => {
-    if (!jobTitle.trim() || !jobDescription.trim()) { // Updated validation
+    if (!jobTitle.trim() || !jobDescription.trim()) {
       toast({
         title: "Error",
         description: "Please enter both job title and description",
@@ -29,7 +50,6 @@ export default function ChatPage() {
 
     setIsGenerating(true)
     setCoverLetter("")
-    setJobTitle("") // Reset job title in form reset
 
     try {
       const response = await fetch("/api/generate-cover-letter", {
@@ -37,7 +57,12 @@ export default function ChatPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ jobTitle, jobDescription, clientName }), // Updated API call
+        body: JSON.stringify({
+          jobTitle,
+          jobDescription,
+          clientName,
+          category: selectedCategory,
+        }),
       })
 
       if (!response.ok) {
@@ -50,24 +75,24 @@ export default function ChatPage() {
 
       if (reader) {
         let buffer = ""
-        
+
         while (true) {
           const { done, value } = await reader.read()
           if (done) break
-          
+
           buffer += decoder.decode(value, { stream: true })
-          const lines = buffer.split('\n')
+          const lines = buffer.split("\n")
           buffer = lines.pop() || ""
-          
+
           for (const line of lines) {
-            if (line.startsWith('data: ')) {
+            if (line.startsWith("data: ")) {
               const data = line.slice(6).trim()
-              if (data === '[DONE]') return
-              
+              if (data === "[DONE]") return
+
               try {
                 const parsed = JSON.parse(data)
                 if (parsed.content) {
-                  setCoverLetter(prev => prev + parsed.content)
+                  setCoverLetter((prev) => prev + parsed.content)
                 }
               } catch (e) {
                 // Ignore parsing errors
@@ -80,7 +105,10 @@ export default function ChatPage() {
       console.error("Generation error:", error)
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to generate cover letter. Please check your API configuration and try again.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to generate cover letter. Please check your API configuration and try again.",
         variant: "destructive",
       })
     } finally {
@@ -100,7 +128,7 @@ export default function ChatPage() {
           </div>
         </div>
       </header>
-      
+
       {/* Main Content */}
       <div className="max-w-4xl mx-auto p-6 space-y-8">
         {/* Input Section */}
@@ -110,7 +138,31 @@ export default function ChatPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="client-name" className="text-gray-300 text-sm">Client Name (Optional)</Label>
+              <Label htmlFor="category" className="text-gray-300 text-sm">
+                Category
+              </Label>
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="bg-black border-gray-700 text-white focus:border-gray-600">
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-900 border-gray-700">
+                  <SelectItem value="mobile" className="text-white hover:bg-gray-800">
+                    Mobile
+                  </SelectItem>
+                  <SelectItem value="web" className="text-white hover:bg-gray-800">
+                    Web
+                  </SelectItem>
+                  <SelectItem value="ai" className="text-white hover:bg-gray-800">
+                    AI
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="client-name" className="text-gray-300 text-sm">
+                Client Name (Optional)
+              </Label>
               <Input
                 id="client-name"
                 placeholder="e.g., Sarah Johnson"
@@ -119,9 +171,11 @@ export default function ChatPage() {
                 className="bg-black border-gray-700 text-white placeholder:text-gray-500 focus:border-gray-600"
               />
             </div>
-            
+
             <div className="space-y-2">
-              <Label htmlFor="job-title" className="text-gray-300 text-sm">Job Title</Label>
+              <Label htmlFor="job-title" className="text-gray-300 text-sm">
+                Job Title
+              </Label>
               <Input
                 id="job-title"
                 placeholder="e.g., Senior Software Engineer"
@@ -130,20 +184,24 @@ export default function ChatPage() {
                 className="bg-black border-gray-700 text-white placeholder:text-gray-500 focus:border-gray-600"
               />
             </div>
-            
+
             <div className="space-y-2">
-              <Label htmlFor="job-description" className="text-gray-300 text-sm">Job Description</Label>
+              <Label htmlFor="job-description" className="text-gray-300 text-sm">
+                Job Description
+              </Label>
               <Textarea
+                ref={textareaRef}
                 id="job-description"
                 placeholder="Paste the job description here..."
                 value={jobDescription}
-                onChange={(e) => setJobDescription(e.target.value)}
-                className="min-h-[200px] bg-black border-gray-700 text-white placeholder:text-gray-500 focus:border-gray-600 resize-none"
+                onChange={handleJobDescriptionChange}
+                className="bg-black border-gray-700 text-white placeholder:text-gray-500 focus:border-gray-600 resize-none overflow-hidden"
+                style={{ minHeight: "120px" }}
               />
             </div>
-            
-            <Button 
-              onClick={handleGenerate} 
+
+            <Button
+              onClick={handleGenerate}
               disabled={isGenerating}
               className="w-full bg-white text-black hover:bg-gray-200 font-medium py-3"
             >
@@ -171,12 +229,13 @@ export default function ChatPage() {
             <CardContent>
               <div className="bg-black border border-gray-800 rounded-lg p-6 min-h-[400px]">
                 <div className="whitespace-pre-wrap text-gray-100 leading-relaxed">
-                  {coverLetter || (isGenerating && (
-                    <div className="flex items-center gap-2 text-gray-400">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Generating your personalized cover letter...
-                    </div>
-                  ))}
+                  {coverLetter ||
+                    (isGenerating && (
+                      <div className="flex items-center gap-2 text-gray-400">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Generating your personalized cover letter...
+                      </div>
+                    ))}
                 </div>
               </div>
             </CardContent>
