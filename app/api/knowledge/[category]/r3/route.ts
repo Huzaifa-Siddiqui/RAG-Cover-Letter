@@ -1,12 +1,27 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
-// GET - Fetch all R3 records
-export async function GET() {
+function getTableName(category: string): string {
+  const validCategories = ["mobile", "web", "ai"]
+  if (!validCategories.includes(category.toLowerCase())) {
+    throw new Error(`Invalid category: ${category}`)
+  }
+  return `${category.toLowerCase()}_r3_skills`
+}
+
+// GET - Fetch all R3 records for specific category
+export async function GET(request: NextRequest, { params }: { params: { category: string } }) {
   try {
-    const { data, error } = await supabase.from("r3_skills").select("*").order("created_at", { ascending: false })
+    const tableName = getTableName(params.category)
+    const { data, error } = await supabase
+      .from(tableName)
+      .select("*")
+      .order("created_at", { ascending: false })
 
     if (error) {
       throw error
@@ -19,24 +34,24 @@ export async function GET() {
   }
 }
 
-// POST - Create new R3 record
-export async function POST(request: NextRequest) {
+// POST - Create new R3 record for specific category
+export async function POST(request: NextRequest, { params }: { params: { category: string } }) {
   try {
+    const tableName = getTableName(params.category)
     const { skillName, skillDescription } = await request.json()
 
     // Create combined embedding for skill name + skill description
     const combinedText = `${skillName} ${skillDescription}`
 
-    const embeddingResponse = await fetch("https://api.cohere.ai/v1/embed", {
+    const embeddingResponse = await fetch("https://api.openai.com/v1/embeddings", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.COHERE_API_KEY}`,
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        texts: [combinedText],
-        model: "embed-english-v3.0",
-        input_type: "search_document",
+        input: combinedText,
+        model: "text-embedding-ada-002", 
       }),
     })
 
@@ -45,20 +60,21 @@ export async function POST(request: NextRequest) {
     }
 
     const embeddingData = await embeddingResponse.json()
-    const combinedEmbedding = embeddingData.embeddings[0]
+    const combinedEmbedding = embeddingData.data[0].embedding
 
     // Extract metadata
     const metadata = {
       skillName,
+      category: params.category,
       skillCategory: extractSkillCategory(skillName, skillDescription),
       proficiencyLevel: extractProficiencyLevel(skillDescription),
       descriptionLength: skillDescription.length,
       createdAt: new Date().toISOString(),
     }
 
-    // Store in Supabase with new schema
+    // Store in category-specific Supabase table
     const { data, error } = await supabase
-      .from("r3_skills")
+      .from(tableName)
       .insert({
         skill_name: skillName,
         skill_description: skillDescription,
@@ -78,9 +94,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT - Update existing R3 record
-export async function PUT(request: NextRequest) {
+// PUT - Update existing R3 record for specific category
+export async function PUT(request: NextRequest, { params }: { params: { category: string } }) {
   try {
+    const tableName = getTableName(params.category)
     const { id, skillName, skillDescription } = await request.json()
 
     if (!id) {
@@ -90,16 +107,15 @@ export async function PUT(request: NextRequest) {
     // Create combined embedding for updated data
     const combinedText = `${skillName} ${skillDescription}`
 
-    const embeddingResponse = await fetch("https://api.cohere.ai/v1/embed", {
+    const embeddingResponse = await fetch("https://api.openai.com/v1/embeddings", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.COHERE_API_KEY}`,
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        texts: [combinedText],
-        model: "embed-english-v3.0",
-        input_type: "search_document",
+        input: combinedText,
+        model: "text-embedding-ada-002", 
       }),
     })
 
@@ -108,20 +124,21 @@ export async function PUT(request: NextRequest) {
     }
 
     const embeddingData = await embeddingResponse.json()
-    const combinedEmbedding = embeddingData.embeddings[0]
+    const combinedEmbedding = embeddingData.data[0].embedding
 
     // Update metadata
     const metadata = {
       skillName,
+      category: params.category,
       skillCategory: extractSkillCategory(skillName, skillDescription),
       proficiencyLevel: extractProficiencyLevel(skillDescription),
       descriptionLength: skillDescription.length,
       updatedAt: new Date().toISOString(),
     }
 
-    // Update in Supabase
+    // Update in category-specific Supabase table
     const { data, error } = await supabase
-      .from("r3_skills")
+      .from(tableName)
       .update({
         skill_name: skillName,
         skill_description: skillDescription,
@@ -142,9 +159,10 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// DELETE - Delete R3 record
-export async function DELETE(request: NextRequest) {
+// DELETE - Delete R3 record for specific category
+export async function DELETE(request: NextRequest, { params }: { params: { category: string } }) {
   try {
+    const tableName = getTableName(params.category)
     const { searchParams } = new URL(request.url)
     const id = searchParams.get("id")
 
@@ -152,7 +170,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "ID is required for deletion" }, { status: 400 })
     }
 
-    const { error } = await supabase.from("r3_skills").delete().eq("id", id)
+    const { error } = await supabase.from(tableName).delete().eq("id", id)
 
     if (error) {
       throw error

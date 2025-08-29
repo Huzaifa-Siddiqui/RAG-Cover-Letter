@@ -32,10 +32,11 @@ interface R3Item extends KnowledgeItem {
 
 interface KnowledgeListProps {
   type: "r1" | "r2" | "r3"
+  category: string
   onAddNew: () => void
 }
 
-export function KnowledgeList({ type, onAddNew }: KnowledgeListProps) {
+export function KnowledgeList({ type, category, onAddNew }: KnowledgeListProps) {
   const [items, setItems] = useState<(R1Item | R2Item | R3Item)[]>([])
   const [loading, setLoading] = useState(true)
   const [editingItem, setEditingItem] = useState<any>(null)
@@ -43,7 +44,7 @@ export function KnowledgeList({ type, onAddNew }: KnowledgeListProps) {
 
   const fetchItems = async () => {
     try {
-      const response = await fetch(`/api/knowledge/${type}`)
+      const response = await fetch(`/api/knowledge/${category}/${type}`)
       const result = await response.json()
 
       if (result.success) {
@@ -64,13 +65,13 @@ export function KnowledgeList({ type, onAddNew }: KnowledgeListProps) {
 
   useEffect(() => {
     fetchItems()
-  }, [type])
+  }, [type, category])
 
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this item?")) return
 
     try {
-      const response = await fetch(`/api/knowledge/${type}?id=${id}`, {
+      const response = await fetch(`/api/knowledge/${category}/${type}?id=${id}`, {
         method: "DELETE",
       })
 
@@ -98,7 +99,7 @@ export function KnowledgeList({ type, onAddNew }: KnowledgeListProps) {
 
   const handleEditSave = async (updatedItem: any) => {
     try {
-      const response = await fetch(`/api/knowledge/${type}`, {
+      const response = await fetch(`/api/knowledge/${category}/${type}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -172,6 +173,9 @@ export function KnowledgeList({ type, onAddNew }: KnowledgeListProps) {
                       <span>{item.metadata.wordCount} words</span>
                     </>
                   )}
+                  <Badge variant="outline" className="text-xs capitalize">
+                    {category}
+                  </Badge>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -221,6 +225,9 @@ export function KnowledgeList({ type, onAddNew }: KnowledgeListProps) {
                   )}
                 </div>
                 <div className="flex gap-2 flex-wrap">
+                  <Badge variant="secondary" className="text-xs capitalize">
+                    {category}
+                  </Badge>
                   {item.metadata?.projectType && (
                     <Badge variant="secondary" className="text-xs">
                       <Tag className="h-3 w-3 mr-1" />
@@ -274,6 +281,9 @@ export function KnowledgeList({ type, onAddNew }: KnowledgeListProps) {
                   {formatDate(item.created_at)}
                 </div>
                 <div className="flex gap-2">
+                  <Badge variant="secondary" className="text-xs capitalize">
+                    {category}
+                  </Badge>
                   {item.metadata?.skillCategory && (
                     <Badge variant="secondary" className="text-xs">
                       <Tag className="h-3 w-3 mr-1" />

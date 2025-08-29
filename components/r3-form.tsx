@@ -11,10 +11,11 @@ import { useToast } from "@/hooks/use-toast"
 import { Loader2, Plus, X } from "lucide-react"
 
 interface R3FormProps {
+  category: string
   onSuccess?: () => void
 }
 
-export function R3Form({ onSuccess }: R3FormProps) {
+export function R3Form({ category, onSuccess }: R3FormProps) {
   const [skillName, setSkillName] = useState("")
   const [skillDescription, setSkillDescription] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -35,7 +36,7 @@ export function R3Form({ onSuccess }: R3FormProps) {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch("/api/knowledge/r3", {
+      const response = await fetch(`/api/knowledge/${category}/r3`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -132,3 +133,5 @@ export function R3Form({ onSuccess }: R3FormProps) {
     </form>
   )
 }
+
+export default R3Form
