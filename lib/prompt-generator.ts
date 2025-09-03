@@ -5,135 +5,108 @@ export function createPerfectRAGPrompt(
   category: string,
   clientName?: string,
 ): string {
+
+
+  console.log("context", context)
+ const projects = context.projects.map((e: any) => 
+    `- ${e.project_title}: ${e.project_description} (Similarity: ${e.similarity})`
+  ).join('\n');
+
+  // Format skills as a string
+  const skills = context.skills.map((e: any) => 
+    `- ${e.skill_name}: ${e.skill_description} (Similarity: ${e.similarity})`
+  ).join('\n');
+
+
+  return `You are an expert in crafting professional Upwork-style proposals. I need you to generate a proposal that strictly follows the instructions below, using the provided variables and guidelines. Ensure the output is concise, professional, and tailored to the client’s job post, selecting the most relevant intro based on the project type and using the provided CTA exactly as given.
+
+***The client’s job description and details.
+  ---job title: ${jobTitle}
+  ---job description: ${jobDescription}
+  ---client name: ${clientName || "there"}
   
-  // R1 Context - Similar cover letters content only
-  let coverLettersReference = ""
-  if (context.r1 && context.r1.length > 0) {
-    coverLettersReference = `SIMILAR COVER LETTERS FOR REFERENCE:
-${context.r1
-  .slice(0, 2) // Top 2 most similar cover letters
-  .map((letter: any, index: number) => 
-    `${index + 1}. Job: "${letter.job_title}" (${(letter.similarity * 100).toFixed(1)}% similarity)
-   Content: ${letter.cover_letter}`
-  )
-  .join("\n\n")}
-`
-  }
 
-  // R2 Projects Context - Most relevant projects to highlight
-  let projectsContext = ""
-  if (context.r2 && context.r2.length > 0) {
-    projectsContext = `RELEVANT PROJECTS TO REFERENCE:
-${context.r2
-  .slice(0, 4) // Top 4 most relevant projects
-  .map((project: any, index: number) => 
-    `${index + 1}. ${project.project_title}
-   Description: ${project.project_description}
-   Technologies: ${project.metadata?.technologies?.join(", ") || "Not specified"}
-   Similarity: ${(project.similarity * 100).toFixed(1)}%`
-  )
-  .join("\n\n")}
-`
-  }
+***A list of my projects, each with name, URL/demo, purpose/problem, solution/approach, key technologies, and industry.
+${projects}
 
-  // R3 Skills Context - Relevant skills to weave in
-  let skillsContext = ""
-  if (context.r3 && context.r3.length > 0) {
-    skillsContext = `RELEVANT SKILLS TO MENTION:
-${context.r3
-  .slice(0, 6) // Top 6 relevant skills
-  .map((skill: any) => `• ${skill.skill_name}: ${skill.skill_description}`)
-  .join("\n")}
-`
-  }
 
-  return `COVER LETTER GENERATION PROMPT
+***My skills: Full Stack Web Developer (10+ years), AWS Certified, AI/ML Engineer (7+ years), Mobile App Developer (5+ years), Head of AI at TensorLabs, 100% client satisfaction rate, 7 startup successes.
+${skills}
+ 
 
-JOB DETAILS:
-Position: ${jobTitle}
-Category: ${category}
-Client: ${clientName }
-Job Description: ${jobDescription}
+**Intros: Choose one of these intros based on the project type in Job Description:
 
-${projectsContext}
-${skillsContext}
-${coverLettersReference}
+Intro1: Full Stack Web Developer (10+ years experience): I’m a Full Stack Web Developer with 10 years of experience, as well as an AWS certified professional. Over the years, I’ve successfully developed and scaled multiple web applications, integrating modern technologies to deliver seamless user experiences. Your job post caught my attention as it aligns with my expertise and the type of solutions I specialize in.
+Intro2: Full Stack Web + AI Developer (10+ years experience): I’m a full-stack web developer with over 10 years of professional experience, also specializing in advanced AI solutions. My background combines web development expertise with AI-driven solutions, enabling me to build applications that are not only functional but also intelligent and future-ready. I can help you in achieving your project goals as it closely matches the work I specialize in.
+intro3: Agency-Oriented Intro: At TensorLabs, we specialize in building intelligent AI systems, scalable software, and data-driven products that help businesses innovate and grow. Our team specializes in delivering end-to-end development solutions, from robust web applications to cutting-edge AI integrations. With an exceptional 100% client satisfaction rate and multiple startup successes, we're your trusted partner for sustained innovation..
+Intro4: Mobile App Developer (5+ years experience): I’m a Mobile App Developer with 5+ years of professional experience building scalable, user-friendly, and high-performing mobile applications. I specialize in building cross-platform applications that run smoothly and meet modern business needs.
+Intro5: AI / ML Engineer (7+ years experience): I am an AI Engineer with 7+ years of experience, also I am AWS certified Machine Learning Specialist. I've helped several AI-based startups go live. I am working as the Head of AI at Tensor Labs. With an exceptional 100% client satisfaction rate and 7 startup successes, we're your trusted partner for sustained innovation..
 
-STEP 1 - JOB DESCRIPTION ANALYSIS:
-Analyze the job description for these patterns:
-- Agency/Team indicators: "agency", "team", "company", "organization", "firm", "studio", "group", "collective", "partners", "your team", "your company"
-- Freelancer indicators: "freelancer", "individual", "solo", "independent contractor", "consultant", "looking for someone", "individual developer"
-- First, carefully check the job description to see if the client asks for any specific details to be included in your proposal, and make sure to include them.
-- if they are saying we dont want an agency or team then use I pronouns.
 
-CRITICAL INSTRUCTIONS:
-1. FIRST ANALYZE THE JOB DESCRIPTION for special patterns and requirements
-2. Follow the EXACT 7-step structure provided in the prompt
-3. Use ONLY the ${category} projects, skills, and style references provided
-4. Start with a relevant project, then follow the mandatory structure
-5. Ask exactly 3 technical questions about their job requirements
-6. Be professional, specific, and demonstrate ${category} expertise
-7. Never Copy anything verbatim from the context - always rephrase
 
-PRONOUN ANALYSIS - VERY IMPORTANT:
-- FIRST analyze the job description to determine if they want an agency/team or freelancer
-- If job description mentions: "agency", "team", "company", "organization", "firm", "studio", "group", "collective", "partners" → use "WE" pronouns
-- If job description mentions: "freelancer", "individual", "solo", "independent contractor", "consultant", or appears to be seeking one person → use "I" pronouns
-- If unclear or no specific mention → DEFAULT to "I" pronouns (freelancer)
-- Be consistent throughout the entire cover letter with your chosen pronoun
+***CTA: Use this exact CTA:
+I am eager to discuss how my skills and experience align with your project's goals. In order to give you my ideas or how I can contribute to your project I will need to have a call with you to understand your use-case in more detail. 
+Regards, 
+[Your Name]
 
-PRONOUN DECISION RULES:
-- If agency/team indicators found → Use "WE" pronouns throughout
-- If freelancer indicators found OR unclear → Use "I" pronouns throughout (DEFAULT)
-- Maintain consistency with chosen pronoun throughout entire letter
-- Special writing patterns: Any specific format, tone, or structure requirements mentioned
 
-MANDATORY STRUCTURE - FOLLOW THIS EXACT ORDER:
+*** Instructions: Follow these exact 7 steps to write the proposal ***
 
-1. START WITH RELEVANT PROJECT
-   Begin with "Hi ${clientName}"
-   Highlight your most relevant project from R2 that matches their needs make sure its relating with job description).
-   Rephrase the project description to show direct alignment with their job 
-   mention the title and project links from fetched project description.
-   Make it compelling and specific
+1. Start the cover letter by highlighting one most relevant project that matches the client’s job description and industry. 
+Select the project based on the field: if the job is web-related, choose from web projects; if it is AI-related, 
+choose from AI projects; and if it involves both web and AI, choose from web + AI projects in the list of projects provided.
+In the introduction, mention the project category and use the exact project title as listed, 
+then rephrase the project description in your own words. Conclude with a one-sentence explanation of how this project is 
+directly relevant to the client’s requirements and industry.
 
-2. REPHRASE CLIENT'S REQUIREMENT
-   Show you understand their needs by rephrasing their job description
-   Identify and mention their specific pain points
-   Example: "I/We understand you're looking for [rephrase requirement] to address [pain point]"
+Example: "One of my most relevant projects is HealthAI Platform (https://healthai.tensorlabs.io/), a healthcare-focused AI system that analyzes patient data in real-time, aligning with your need for AI-driven healthcare solutions."
 
-3. TECHNICAL APPROACH
-   Explain step by step how you'll solve their problem
-   Use specific technologies and methodologies from your skillset
-   Be concrete and detailed about your approach
+2. Show How You’ll Solve the Client’s Problem (Solution-Oriented, 2–3 Lines):
+- Write 2–3 lines describing how you will address the client’s needs based on job details.
+- Focus on solutions, not repeating the job post.
 
-4. SHOW MORE RELEVANT PROJECTS
-   Add 2-3 more examples from R2 projects to build credibility
-   Focus on measurable outcomes and results
-   Show variety in your experience - rephrase project descriptions, don't copy paste
-   
-5. ASK TECHNICAL/RELEVANT QUESTIONS
-      Ask 3 specific questions about their project requirements
-      Show you've studied their job posting carefully
-      Demonstrate strategic thinking about their challenges
-      It should be look like you have researched about their project and you are very interested in working with them.
+3. Brief Technical Approach:
+- Summarize the specific technical stack, tools, and methods you will use to deliver the solution.
+- Keep it concise but concrete, focusing on relevance to the client’s project.
 
-6. INTRODUCTION
-   Introduce yourself/your expertise in 2-3 lines
-   Copy the experience and exact style from R1 (Fetched cover letters)
-   Keep it professional and relevant to ${category}
-   
-   
-7. STRONG CTA (CALL-TO-ACTION)
-  similar reparture from similar cover letter's CTA from R1 but rephrased, if meeting link found in fetched cover letter then put that link also.
+4. Show 2–3 More Relevant Projects (One-Liner Each):
+- Pick 2–3 additional projects from list of projects.
+- Write one-liner descriptions including project name, link, and relevance.
 
-OUTPUT REQUIREMENTS:
-- Professional tone matching the ${category} field
-- Use projects and skills from the provided context only
-- Keep it concise but comprehensive
-- Maintain consistent pronoun usage throughout (I vs We)
-- End with "Regards, [Your Name]" or "Regards, [Team Name]" based on pronoun choice
-- Follow any specific patterns mentioned in the job description
+5. Ask 3 Technical, Non-Generic Questions:
+- Ask three specific, technical questions about the client’s project, showing careful analysis and understanding of job detials.
+- Avoid generic questions (e.g., "What’s your budget?").
 
-Generate the complete cover letter following this exact 7-step structure with proper pronoun analysis.`
+6. Brief Intro About the User:
+- Select the most relevant intro from intros based on the project type in jobPost (e.g., AI/ML for AI projects, Mobile App Developer for mobile projects).
+- Rephrase slightly if needed to align with the client’s industry/project, keeping it 2–3 lines.
+
+7. Strong Call-to-Action (CTA):
+- Use the exact CTA provided above.
+
+***Output Format:
+Write the proposal in this exact order:
+textHi   clientName}
+[Step 1: Most relevant project with link/demo]
+[Step 2: Solution in 2–3 lines]
+[Step 3: Technical approach]
+[Step 4: 2–3 more relevant projects, one-liner each]
+[Step 5: 3 specific technical questions]
+[Step 6: Selected intro, tailored to project]
+[Step 7: Exact CTA]
+
+
+***Guidelines:
+- Ensure the intro selected from intros provided matches the project type (e.g., AI/ML for AI projects, Mobile App Developer for mobile projects, etc.).
+- Use the exact CTA provided without modification.
+Keep the tone professional, concise, and client-focused.
+- Do not mention these instructions or guidelines in the output.
+- If clientName is unavailable, use a generic greeting like "Hi there,".
+- Ensure questions in Step 5 are specific to the job post and demonstrate technical expertise.
+- If the client explicitly says "agency", proposal must use "we" and agency-oriented intro.
+- If the client does not mention agency, proposal must use "I" and the most relevant individual intro.
+
+
+*******
+Now, generate a professional Upwork-style proposal based on the provided variables and instructions.`
 }

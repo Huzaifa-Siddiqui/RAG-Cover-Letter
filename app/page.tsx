@@ -1,14 +1,14 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Send, Loader2, Sparkles } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { Label, Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 export default function ChatPage() {
   const [jobDescription, setJobDescription] = useState("")
@@ -16,27 +16,7 @@ export default function ChatPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [clientName, setClientName] = useState("")
   const [jobTitle, setJobTitle] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState<string>("web")
   const { toast } = useToast()
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
-
-  // Auto-resize textarea function
-  const adjustTextareaHeight = () => {
-    const textarea = textareaRef.current
-    if (textarea) {
-      textarea.style.height = "auto"
-      textarea.style.height = `${Math.max(textarea.scrollHeight, 120)}px` // Minimum height of 120px
-    }
-  }
-
-  // Adjust height when content changes
-  useEffect(() => {
-    adjustTextareaHeight()
-  }, [jobDescription])
-
-  const handleJobDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setJobDescription(e.target.value)
-  }
 
   const handleGenerate = async () => {
     if (!jobTitle.trim() || !jobDescription.trim()) {
@@ -61,7 +41,6 @@ export default function ChatPage() {
           jobTitle,
           jobDescription,
           clientName,
-          category: selectedCategory,
         }),
       })
 
@@ -138,28 +117,6 @@ export default function ChatPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="category" className="text-gray-300 text-sm">
-                Category
-              </Label>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="bg-black border-gray-700 text-white focus:border-gray-600">
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-900 border-gray-700">
-                  <SelectItem value="mobile" className="text-white hover:bg-gray-800">
-                    Mobile
-                  </SelectItem>
-                  <SelectItem value="web" className="text-white hover:bg-gray-800">
-                    Web
-                  </SelectItem>
-                  <SelectItem value="ai" className="text-white hover:bg-gray-800">
-                    AI
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="client-name" className="text-gray-300 text-sm">
                 Client Name (Optional)
               </Label>
@@ -190,13 +147,11 @@ export default function ChatPage() {
                 Job Description
               </Label>
               <Textarea
-                ref={textareaRef}
                 id="job-description"
                 placeholder="Paste the job description here..."
                 value={jobDescription}
-                onChange={handleJobDescriptionChange}
-                className="bg-black border-gray-700 text-white placeholder:text-gray-500 focus:border-gray-600 resize-none overflow-hidden"
-                style={{ minHeight: "120px" }}
+                onChange={(e) => setJobDescription(e.target.value)}
+                className="min-h-[200px] bg-black border-gray-700 text-white placeholder:text-gray-500 focus:border-gray-600 resize-none"
               />
             </div>
 

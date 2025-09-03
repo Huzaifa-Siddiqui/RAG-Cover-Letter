@@ -5,16 +5,16 @@ import type React from "react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { Loader2, Plus, X } from "lucide-react"
 
 interface R1FormProps {
-  category: string
   onSuccess?: () => void
 }
 
-export function R1Form({ category, onSuccess }: R1FormProps) {
+export function R1Form({ onSuccess }: R1FormProps) {
   const [jobTitle, setJobTitle] = useState("")
   const [jobDescription, setJobDescription] = useState("")
   const [coverLetter, setCoverLetter] = useState("")
@@ -36,7 +36,7 @@ export function R1Form({ category, onSuccess }: R1FormProps) {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch(`/api/knowledge/${category}/r1`, {
+      const response = await fetch(`/api/knowledge/job-examples`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -78,11 +78,12 @@ export function R1Form({ category, onSuccess }: R1FormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <label htmlFor="r1-job-title" className="text-gray-300 text-sm">
+        <Label htmlFor="r1-job-title" className="text-gray-300 text-sm">
           Job Title
-        </label>
+        </Label>
         <Input
           id="r1-job-title"
+          placeholder="e.g., Senior Software Engineer, Marketing Manager"
           value={jobTitle}
           onChange={(e) => setJobTitle((e.target as HTMLInputElement).value)}
           className="bg-black border-gray-700 text-white placeholder:text-gray-500 focus:border-gray-600"
@@ -90,9 +91,9 @@ export function R1Form({ category, onSuccess }: R1FormProps) {
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="r1-job-description" className="text-gray-300 text-sm">
+        <Label htmlFor="r1-job-description" className="text-gray-300 text-sm">
           Job Description
-        </label>
+        </Label>
         <Textarea
           id="r1-job-description"
           placeholder="Enter the complete job description..."
@@ -103,9 +104,9 @@ export function R1Form({ category, onSuccess }: R1FormProps) {
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="r1-cover-letter" className="text-gray-300 text-sm">
+        <Label htmlFor="r1-cover-letter" className="text-gray-300 text-sm">
           Cover Letter
-        </label>
+        </Label>
         <Textarea
           id="r1-cover-letter"
           placeholder="Enter the cover letter that was successful for this job..."

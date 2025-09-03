@@ -11,26 +11,17 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    const { jobTitle, jobDescription, clientName, category } = await request.json()
+    const { jobTitle, jobDescription, clientName } = await request.json()
 
-    if (!jobTitle?.trim() || !jobDescription?.trim() || !category?.trim()) {
+    if (!jobTitle?.trim() || !jobDescription?.trim()) {
       return NextResponse.json(
-        { error: "Job title, description, and category are required" },
+        { error: "Job title and description are required" },
         { status: 400 }
       )
     }
 
-    const validCategories = ["mobile", "web", "ai"]
-    if (!validCategories.includes(category.toLowerCase())) {
-      return NextResponse.json(
-        { error: "Invalid category. Must be mobile, web, or ai" },
-        { status: 400 }
-      )
-    }
-
-    console.log(`🚀 Starting ${category.toUpperCase()}-focused RAG cover letter generation...`)
+    console.log("🚀 Starting global RAG cover letter generation...")
     console.log("Job title:", jobTitle)
-    console.log("Category:", category)
     console.log("Job description length:", jobDescription.length)
 
     // Step 1: Create combined embedding for received job title + job description
@@ -77,42 +68,33 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Step 2: Search category-specific knowledge base
-    console.log(`Searching ${category.toUpperCase()} knowledge base...`)
-    const searchResults = await searchKnowledgeBase(queryEmbedding, supabase, category)
+    // Step 2: Search global knowledge base across all tables
+    console.log("Searching global knowledge base across all tables...")
+    const searchResults = await searchKnowledgeBase(queryEmbedding, supabase)
 
-    console.log(`🎯 ${category.toUpperCase()} RAG Results:`)
-    console.log(`- R1 (Similar Cover Letters): ${searchResults.r1CoverLetters.length} matches`)
-    console.log(`- R2 (Category Projects): ${searchResults.r2Projects.length} matches`)
-    console.log(`- R3 (Category Skills): ${searchResults.r3Skills.length} matches`)
+    console.log("🎯 Global RAG Results:")
+    console.log(`- Job Examples: ${searchResults.jobExamples.length} matches`)
+    console.log(`- Projects: ${searchResults.projects.length} matches`)
+    console.log(`- Skills: ${searchResults.skills.length} matches`)
+    console.log(`- Total matches: ${searchResults.totalMatches}`)
 
     // Step 3: Create comprehensive context for LLM
-    const context = {
-      r1:
-        searchResults.r1CoverLetters.length > 0
-          ? searchResults.r1CoverLetters
-          : searchResults.fallbackData.r1,
-      r2:
-        searchResults.r2Projects.length > 0
-          ? searchResults.r2Projects
-          : searchResults.fallbackData.r2,
-      r3:
-        searchResults.r3Skills.length > 0
-          ? searchResults.r3Skills
-          : searchResults.fallbackData.r3,
-      hasKnowledgeBase: searchResults.totalMatches > 0,
-      totalMatches: searchResults.totalMatches,
-      fallbackUsed: searchResults.totalMatches === 0,
-      category: category.toLowerCase(),
-    }
+ // Step 3: Create comprehensive context for LLM
+ 
+const context = {
+  jobExamples: searchResults.jobExamples,
+  projects: searchResults.projects,
+  skills: searchResults.skills,
+  hasKnowledgeBase: searchResults.totalMatches > 0,
+  totalMatches: searchResults.totalMatches,
+}
 
-    // Step 4: Generate cover letter with category-specific RAG context
+    // Step 4: Generate cover letter with global RAG context
     const prompt = createPerfectRAGPrompt(
       jobTitle,
       jobDescription,
       context,
-      category.toLowerCase(),
-      clientName
+      clientName  
     )
 
     if (!process.env.OPENAI_API_KEY) {
@@ -122,10 +104,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log(`Generating perfectly structured ${category.toUpperCase()} cover letter...`)
+    console.log("Generating perfectly structured cover letter with global context...")
 
-    // Step 5: Stream the response with category-specific instructions
-    return await streamOpenAIResponse(prompt, context, category.toLowerCase())
+    // Step 5: Stream the response with global knowledge base context
+    return await streamOpenAIResponse(prompt, context)
   } catch (error) {
     console.error("Error generating cover letter:", error)
     return NextResponse.json(

@@ -6,16 +6,15 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { Loader2, Plus, X } from "lucide-react"
 
 interface R3FormProps {
-  category: string
   onSuccess?: () => void
 }
 
-export function R3Form({ category, onSuccess }: R3FormProps) {
+export function R3Form({ onSuccess }: R3FormProps) {
   const [skillName, setSkillName] = useState("")
   const [skillDescription, setSkillDescription] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -36,7 +35,7 @@ export function R3Form({ category, onSuccess }: R3FormProps) {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch(`/api/knowledge/${category}/r3`, {
+      const response = await fetch(`/api/knowledge/skills`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -81,7 +80,7 @@ export function R3Form({ category, onSuccess }: R3FormProps) {
         </Label>
         <Input
           id="r3-skill-name"
-          placeholder="e.g., React.js, Project Management, Data Analysis"
+          placeholder="e.g., React Development, Project Management, Data Analysis"
           value={skillName}
           onChange={(e) => setSkillName(e.target.value)}
           className="bg-black border-gray-700 text-white placeholder:text-gray-500 focus:border-gray-600"
@@ -94,10 +93,10 @@ export function R3Form({ category, onSuccess }: R3FormProps) {
         </Label>
         <Textarea
           id="r3-skill-description"
-          placeholder="Describe your experience and proficiency with this skill. Include specific examples, years of experience, and achievements..."
+          placeholder="Describe your proficiency level, experience, and specific achievements with this skill..."
           value={skillDescription}
           onChange={(e) => setSkillDescription(e.target.value)}
-          className="min-h-[120px] bg-black border-gray-700 text-white placeholder:text-gray-500 focus:border-gray-600 resize-none"
+          className="min-h-[150px] bg-black border-gray-700 text-white placeholder:text-gray-500 focus:border-gray-600 resize-none"
         />
       </div>
 
@@ -133,5 +132,3 @@ export function R3Form({ category, onSuccess }: R3FormProps) {
     </form>
   )
 }
-
-export default R3Form
