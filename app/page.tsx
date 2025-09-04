@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -17,6 +17,16 @@ export default function ChatPage() {
   const [clientName, setClientName] = useState("")
   const [jobTitle, setJobTitle] = useState("")
   const { toast } = useToast()
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // Auto-resize textarea based on content
+  useEffect(() => {
+    const textarea = textareaRef.current
+    if (textarea) {
+      textarea.style.height = "auto" // Reset height
+      textarea.style.height = `${textarea.scrollHeight}px` // Set to scroll height
+    }
+  }, [jobDescription])
 
   const handleGenerate = async () => {
     if (!jobTitle.trim() || !jobDescription.trim()) {
@@ -151,7 +161,9 @@ export default function ChatPage() {
                 placeholder="Paste the job description here..."
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
-                className="min-h-[200px] bg-black border-gray-700 text-white placeholder:text-gray-500 focus:border-gray-600 resize-none"
+                ref={textareaRef}
+                className="bg-black border-gray-700 text-white placeholder:text-gray-500 focus:border-gray-600 resize-none"
+                style={{ overflow: "hidden" }} // Hide scrollbar
               />
             </div>
 

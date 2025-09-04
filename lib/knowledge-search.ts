@@ -125,34 +125,34 @@ async function hydrateJobExamplesWithCoverLetters(
 /**
  * Search for similar projects
  */
-async function searchSimilarProjects(queryEmbedding: number[], supabase: SupabaseClient) {
-  try {
-    console.log("🎯 Searching for similar projects...")
+  async function searchSimilarProjects(queryEmbedding: number[], supabase: SupabaseClient) {
+    try {
+      console.log("🎯 Searching for similar projects...")
 
-    // Query Supabase using vector similarity search (cosine distance)
-    const { data: rpcData, error } = await supabase.rpc('match_projects', {
-      query_embedding: queryEmbedding,
-      match_threshold: 0.6, 
-      match_count: 10,
-    })
+      // Query Supabase using vector similarity search (cosine distance)
+      const { data: rpcData, error } = await supabase.rpc('match_projects', {
+        query_embedding: queryEmbedding,
+        match_threshold: 0.6, 
+        match_count: 10,
+      })
 
-    if (error) {
-      console.error('Supabase RPC Error:', error);
+      if (error) {
+        console.error('Supabase RPC Error:', error);
+        return []
+      }
+
+      if (rpcData && rpcData.length > 0) {
+        console.log(`✅ Found ${rpcData.length} similar projects`)
+        return rpcData// return top 6 projects
+      }
+          console.log(searchSimilarProjects)
+      console.log("❌ No similar projects found")
+      return [] 
+    } catch (error) {
+      console.error("Projects search error:", error)
       return []
     }
-
-    if (rpcData && rpcData.length > 0) {
-      console.log(`✅ Found ${rpcData.length} similar projects`)
-      return rpcData.slice(0, 3) // return top 3
-    }
-        console.log(searchSimilarProjects)
-    console.log("❌ No similar projects found")
-    return [] 
-  } catch (error) {
-    console.error("Projects search error:", error)
-    return []
   }
-}
 
 /**
  * Search for similar skills
