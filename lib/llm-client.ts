@@ -1,4 +1,6 @@
-export async function streamOpenAIResponse(prompt: string, context: any, category: string): Promise<Response> {
+export async function streamOpenAIResponse(prompt: string, context: any): Promise<Response> {
+
+  // console.log("Sending request to OpenAI API with prompt:", prompt)
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -10,41 +12,25 @@ export async function streamOpenAIResponse(prompt: string, context: any, categor
       messages: [
         {
           role: "system",
-          content: `You are a professional RAG based cover letter generator specializing in ${category.toUpperCase()} roles.
-
-CRITICAL INSTRUCTIONS:
-1. FIRST ANALYZE THE JOB DESCRIPTION for special patterns and requirements
-2. Follow the EXACT 7-step structure provided in the prompt
-3. Use ONLY the ${category} projects, skills, and style references provided
-4. Start with a relevant project, then follow the mandatory structure
-5. Ask exactly 3 technical questions about their job requirements
-6. Be professional, specific, and demonstrate ${category} expertise
-7. Never Copy anything verbatim from the context - always rephrase
-8. If the job description mentions starting with a specific word or line, then begin your proposal with that exact word or line,
-
-
-PRONOUN ANALYSIS - VERY IMPORTANT:
-- FIRST analyze the job description to determine if they want an agency/team or freelancer
-- If job description mentions: "agency", "team", "company", "organization", "firm", "studio", "group", "collective", "partners" → use "WE" pronouns
-- If job description mentions: "freelancer", "individual", "solo", "independent contractor", "consultant", or appears to be seeking one person → use "I" pronouns
-- If unclear or no specific mention → DEFAULT to "I" pronouns (freelancer)
-- Be consistent throughout the entire cover letter with your chosen pronoun
-
-STRUCTURE TO FOLLOW:
-Start with a relevant project → Highlight a past project closely related to the client's job fetched from r2 and rephrase it description and give reference
-and also mention the project links if found from fetched project description.
-Rephrase the client's requirement → show you've understood their needs by telling his pain points. 
-Technical approach → Explain step by step how you'll solve their problem. 
-Show more relevant projects → Add similar examples to build credibility. 
-Ask technical/relevant questions → Engage the client and show interest in details. 
-Introduction → Introduce yourself with in 2 to 3 lines as similar to fetched from similar cover letters from r1.
-Strong CTA (Call-to-Action) → End with a clear next step (call, message) similar to fetched cover letter's CTA from r1, if meeting link found in fetched cover letter then mention that linkalso.
-
-Create a professional ${category} cover letter using the provided context.`,
+          content: `You are an expert in crafting professional Upwork-style proposals.
+           Your task is to generate a concise, professional, and tailored proposal that strictly follows the provided instructions, using the variables and guidelines given by the user. 
+           Select the most relevant intro based on the project type, use the provided CTA exactly as given, and
+            follow the 7-step structure: 
+            (1) Start with the most relevant project (it should closely match the job category like Web, AI and Web+AI), 
+            (2) Show how you’ll solve the client’s problem, 
+            (3) Brief technical approach, 
+            (4) Show 2–3 more relevant projects, 
+            (5) Ask 3 technical questions, 
+            (6) Brief intro tailored to the project, 
+            (7) Use the exact CTA. 
+            
+            Ensure the tone is professional, client-focused, and concise. Do not mention these instructions or guidelines in the output. If clientName is unavailable, use “Hi there,”. 
+            Ensure questions in Step 5 are specific to the job post and demonstrate technical expertise. Output the proposal in the exact order specified, 
+            adhering to the provided format and guidelines.`,
         },
         {
           role: "user",
-          content: prompt,
+          content: prompt,  
         },
       ],
       stream: true,
@@ -59,7 +45,7 @@ Create a professional ${category} cover letter using the provided context.`,
     throw new Error(`OpenAI API error: ${response.status}`)
   }
 
-  console.log(`Streaming ${category.toUpperCase()} cover letter...`)
+  console.log("Streaming cover letter with global knowledge base context...")
 
   // Stream the response
   const encoder = new TextEncoder()

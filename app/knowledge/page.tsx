@@ -1,9 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Database } from "lucide-react"
 import { KnowledgeList } from "@/components/knowledge-list"
@@ -13,7 +12,6 @@ import { R3Form } from "@/components/r3-form"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 export default function KnowledgePage() {
-  const [selectedCategory, setSelectedCategory] = useState<string>("web")
   const [activeTab, setActiveTab] = useState("r1")
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [addDialogType, setAddDialogType] = useState<"r1" | "r2" | "r3">("r1")
@@ -42,11 +40,11 @@ export default function KnowledgePage() {
   const renderForm = () => {
     switch (addDialogType) {
       case "r1":
-        return <R1Form category={selectedCategory} onSuccess={handleFormSuccess} />
+        return <R1Form onSuccess={handleFormSuccess} />
       case "r2":
-        return <R2Form category={selectedCategory} onSuccess={handleFormSuccess} />
+        return <R2Form onSuccess={handleFormSuccess} />
       case "r3":
-        return <R3Form category={selectedCategory} onSuccess={handleFormSuccess} />
+        return <R3Form onSuccess={handleFormSuccess} />
     }
   }
 
@@ -65,31 +63,6 @@ export default function KnowledgePage() {
 
       {/* Main Content */}
       <div className="max-w-6xl mx-auto p-6 space-y-8">
-        {/* Category Selection */}
-        <Card className="bg-gray-950 border-gray-800">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-white font-light text-xl">Select Category</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="bg-black border-gray-700 text-white focus:border-gray-600 max-w-xs">
-                <SelectValue placeholder="Select a category" />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-900 border-gray-700">
-                <SelectItem value="mobile" className="text-white hover:bg-gray-800">
-                  Mobile Development
-                </SelectItem>
-                <SelectItem value="web" className="text-white hover:bg-gray-800">
-                  Web Development
-                </SelectItem>
-                <SelectItem value="ai" className="text-white hover:bg-gray-800">
-                  AI & Machine Learning
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </CardContent>
-        </Card>
-
         {/* Knowledge Base Tabs */}
         <Card className="bg-gray-950 border-gray-800">
           <CardContent className="p-6">
@@ -107,15 +80,15 @@ export default function KnowledgePage() {
               </TabsList>
 
               <TabsContent value="r1" className="mt-6">
-                <KnowledgeList type="r1" category={selectedCategory} onAddNew={() => handleAddNew("r1")} />
+                <KnowledgeList type="r1" onAddNew={() => handleAddNew("r1")} />
               </TabsContent>
 
               <TabsContent value="r2" className="mt-6">
-                <KnowledgeList type="r2" category={selectedCategory} onAddNew={() => handleAddNew("r2")} />
+                <KnowledgeList type="r2" onAddNew={() => handleAddNew("r2")} />
               </TabsContent>
 
               <TabsContent value="r3" className="mt-6">
-                <KnowledgeList type="r3" category={selectedCategory} onAddNew={() => handleAddNew("r3")} />
+                <KnowledgeList type="r3" onAddNew={() => handleAddNew("r3")} />
               </TabsContent>
             </Tabs>
           </CardContent>

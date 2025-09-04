@@ -1,20 +1,14 @@
-// Knowledge Base Search Utilities
+// Knowledge Base Search Utilities (Global Tables)
 import type { SupabaseClient } from "@supabase/supabase-js"
-import type { JobAnalysis } from "./job-analysis"
 
 export interface SearchResults {
-  r1CoverLetters: any[]
-  r2Projects: any[]
-  r3Skills: any[]
+  jobExamples: any[]
+  projects: any[]
+  skills: any[]
   totalMatches: number
-  fallbackData: {
-    r1: any[]
-    r2: any[]
-    r3: any[]
-  }
 }
 
-type R1RPCRow = {
+type JobExampleRPCRow = {
   id: number
   similarity: number
   cover_letter?: string | null
@@ -23,11 +17,12 @@ type R1RPCRow = {
   metadata?: any
 }
 
-type R1Row = {
+type JobExampleRow = {
   id: number
   job_title: string | null
   job_description: string | null
   cover_letter: string | null
+  category: string | null
   metadata: any
   created_at: string | null
   combined_embedding: number[] | null
@@ -37,42 +32,36 @@ type R1Row = {
 export async function searchKnowledgeBase(
   queryEmbedding: number[],
   supabase: SupabaseClient,
-  category = "web",
 ): Promise<SearchResults> {
-  const [r1CoverLetters, r2Projects, r3Skills] = await Promise.all([
-    searchSimilarR1CoverLetters(queryEmbedding, supabase, category),
-    searchSimilarR2Projects(queryEmbedding, supabase, category),
-    searchSimilarR3Skills(queryEmbedding, supabase, category),
+  const [jobExamples, projects, skills] = await Promise.all([
+    searchSimilarJobExamples(queryEmbedding, supabase),
+    searchSimilarProjects(queryEmbedding, supabase),
+    searchSimilarSkills(queryEmbedding, supabase),
   ])
 
-  const totalMatches = r1CoverLetters.length + r2Projects.length + r3Skills.length
-
-  
+  const totalMatches = jobExamples.length + projects.length + skills.length
 
   return {
-    r1CoverLetters,
-    r2Projects,
-    r3Skills,
+    jobExamples,
+    projects,
+    skills,
     totalMatches,
-    fallbackData: { r1: [], r2: [], r3: [] }, // Empty fallback data since we removed fallback logic
   }
 }
 
 /**
- * R1: Cover Letters — ensure we return the exact cover_letter from category-specific table.
+ * Search for similar job examples and cover letters
  */
-async function searchSimilarR1CoverLetters(queryEmbedding: number[], supabase: SupabaseClient, category: string) {
+async function searchSimilarJobExamples(queryEmbedding: number[], supabase: SupabaseClient) {
   try {
-    console.log(`Searching R1 for similar cover letters in ${category} category...`)
-
-    const rpcName = `match_${category}_r1_job_examples`
+    console.log("🔍 Searching for similar job examples...")
 
     // Query Supabase using vector similarity search (cosine distance)
-    const { data: rpcData, error } = await supabase.rpc(rpcName, {
+    const { data: rpcData, error } = await supabase.rpc('match_job_examples', {
       query_embedding: queryEmbedding,
       match_threshold: 0.6, // optional: only return strong matches
       match_count: 4,
-    }) as { data: R1RPCRow[] | null; error: any }
+    }) as { data: JobExampleRPCRow[] | null; error: any }
 
     if (error) {
       console.error('Supabase RPC Error:', error);
@@ -81,51 +70,49 @@ async function searchSimilarR1CoverLetters(queryEmbedding: number[], supabase: S
 
     if (rpcData && rpcData.length > 0) {
       // Always hydrate by IDs to get the exact cover_letter column values.
-      const hydrated = await hydrateR1RowsWithCoverLetters(rpcData, supabase, category)
+      const hydrated = await hydrateJobExamplesWithCoverLetters(rpcData, supabase)
       if (hydrated.length > 0) {
-        
+        console.log(`✅ Found ${hydrated.length} similar job examples`)
         return hydrated
       }
     }
 
- 
+    console.log("❌ No similar job examples found")
     return []
   } catch (error) {
-    console.error("R1 search error:", error)
+    console.error("Job examples search error:", error)
     return []
   }
 }
 
 /**
- * Hydrate R1 RPC rows with full records from category-specific table to ensure exact cover_letter is returned.
+ * Hydrate job example RPC rows with full records from table to ensure exact cover_letter is returned.
  */
-async function hydrateR1RowsWithCoverLetters(
-  rpcRows: R1RPCRow[],
+async function hydrateJobExamplesWithCoverLetters(
+  rpcRows: JobExampleRPCRow[],
   supabase: SupabaseClient,
-  category: string,
-): Promise<R1Row[]> {
+): Promise<JobExampleRow[]> {
   if (!rpcRows || rpcRows.length === 0) return []
 
-  console.log(` Hydrating ${rpcRows.length} RPC rows to get full cover letter content...`)
+  console.log(`🔄 Hydrating ${rpcRows.length} RPC rows to get full cover letter content...`)
 
-  const tableName = `${category}_r1_job_examples`
   const ids = rpcRows.map((r) => r.id)
   const simMap = new Map(rpcRows.map((r) => [r.id, r.similarity]))
 
   const { data, error } = await supabase
-    .from(tableName)
+    .from('job_examples')
     .select("id, job_title, job_description, cover_letter, metadata, created_at, combined_embedding")
     .in("id", ids)
 
   if (error || !data) {
-    console.error("Hydration error fetching r1_job_examples by ids:", error)
+    console.error("Hydration error fetching job_examples by ids:", error)
     return []
   }
 
   console.log(`✅ Successfully hydrated ${data.length} records from database`)
 
   // Merge similarity back and ensure sorting by similarity desc
-  const merged = (data as R1Row[]).map((row) => ({
+  const merged = (data as JobExampleRow[]).map((row) => ({
     ...row,
     similarity: simMap.get(row.id) ?? 0,
   }))
@@ -135,50 +122,47 @@ async function hydrateR1RowsWithCoverLetters(
   return merged.filter((r) => typeof r.cover_letter === "string" && r.cover_letter.trim().length > 0)
 }
 
-// Simplified R2 search (no domain filtering)
-async function searchSimilarR2Projects(
-  queryEmbedding: number[],
-  supabase: SupabaseClient,
-  category: string,
-) {
-  try {
-    console.log(`🎯 Searching R2 for projects in ${category} category...`)
+/**
+ * Search for similar projects
+ */
+  async function searchSimilarProjects(queryEmbedding: number[], supabase: SupabaseClient) {
+    try {
+      console.log("🎯 Searching for similar projects...")
 
-    const rpcName = `match_${category}_r2_projects`
+      // Query Supabase using vector similarity search (cosine distance)
+      const { data: rpcData, error } = await supabase.rpc('match_projects', {
+        query_embedding: queryEmbedding,
+        match_threshold: 0.6, 
+        match_count: 10,
+      })
 
-    // Query Supabase using vector similarity search (cosine distance)
-    const { data: rpcData, error } = await supabase.rpc(rpcName, {
-      query_embedding: queryEmbedding,
-      match_threshold: 0.8, 
-      match_count: 5,
-    })
+      if (error) {
+        console.error('Supabase RPC Error:', error);
+        return []
+      }
 
-    if (error) {
-      console.error('Supabase RPC Error:', error);
+      if (rpcData && rpcData.length > 0) {
+        console.log(`✅ Found ${rpcData.length} similar projects`)
+        return rpcData// return top 6 projects
+      }
+          console.log(searchSimilarProjects)
+      console.log("❌ No similar projects found")
+      return [] 
+    } catch (error) {
+      console.error("Projects search error:", error)
       return []
     }
-
-    if (rpcData && rpcData.length > 0) {
-    
-      return rpcData.slice(0, 3) // return top 3
-    }
-
-
-    return [] 
-  } catch (error) {
-    console.error("R2 search error:", error)
-    return []
   }
-}
 
-async function searchSimilarR3Skills(queryEmbedding: number[], supabase: SupabaseClient, category: string) {
+/**
+ * Search for similar skills
+ */
+async function searchSimilarSkills(queryEmbedding: number[], supabase: SupabaseClient) {
   try {
-    console.log(` Searching R3 for relevant skills in ${category} category...`)
-
-    const rpcName = `match_${category}_r3_skills`
+    console.log("🎪 Searching for relevant skills...")
 
     // Query Supabase using vector similarity search (cosine distance)
-    const { data: rpcData, error } = await supabase.rpc(rpcName, {
+    const { data: rpcData, error } = await supabase.rpc('match_skills', {
       query_embedding: queryEmbedding,
       match_threshold: 0.7, 
       match_count: 8,
@@ -190,16 +174,14 @@ async function searchSimilarR3Skills(queryEmbedding: number[], supabase: Supabas
     }
 
     if (rpcData && rpcData.length > 0) {
-      console.log(`✅ Found ${rpcData.length} R3 skills with threshold 0.6`)
+      console.log(`✅ Found ${rpcData.length} relevant skills`)
       return rpcData as any[]
     }
 
-
+    console.log("❌ No relevant skills found")
     return []
   } catch (error) {
-    console.error("R3 search error:", error)
+    console.error("Skills search error:", error)
     return []
   }
 }
-
-

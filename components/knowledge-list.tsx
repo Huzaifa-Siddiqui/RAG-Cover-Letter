@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
-import { Edit, Trash2, Plus, Calendar, Tag } from "lucide-react"
+import { Edit, Trash2, Plus, Calendar, Tag, Search } from "lucide-react"
 import { EditDialog } from "./edit-dialog"
 
 interface KnowledgeItem {
@@ -32,19 +33,68 @@ interface R3Item extends KnowledgeItem {
 
 interface KnowledgeListProps {
   type: "r1" | "r2" | "r3"
-  category: string
   onAddNew: () => void
 }
 
-export function KnowledgeList({ type, category, onAddNew }: KnowledgeListProps) {
+// Map types to their corresponding table endpoints
+const getTableName = (type: "r1" | "r2" | "r3") => {
+  switch (type) {
+    case "r1":
+      return "job-examples"
+    case "r2":
+      return "projects"
+    case "r3":
+      return "skills"
+  }
+}
+
+export function KnowledgeList({ type, onAddNew }: KnowledgeListProps) {
   const [items, setItems] = useState<(R1Item | R2Item | R3Item)[]>([])
+  const [filteredItems, setFilteredItems] = useState<(R1Item | R2Item | R3Item)[]>([])
+  const [searchQuery, setSearchQuery] = useState("")
   const [loading, setLoading] = useState(true)
   const [editingItem, setEditingItem] = useState<any>(null)
   const { toast } = useToast()
 
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredItems(items)
+      return
+    }
+
+    const query = searchQuery.toLowerCase()
+    const filtered = items.filter((item) => {
+      switch (type) {
+        case "r1":
+          const r1Item = item as R1Item
+          return (
+            r1Item.job_title?.toLowerCase().includes(query) ||
+            r1Item.job_description?.toLowerCase().includes(query) ||
+            r1Item.cover_letter?.toLowerCase().includes(query)
+          )
+        case "r2":
+          const r2Item = item as R2Item
+          return (
+            r2Item.project_title?.toLowerCase().includes(query) ||
+            r2Item.project_description?.toLowerCase().includes(query)
+          )
+        case "r3":
+          const r3Item = item as R3Item
+          return (
+            r3Item.skill_name?.toLowerCase().includes(query) || 
+            r3Item.skill_description?.toLowerCase().includes(query)
+          )
+        default:
+          return false
+      }
+    })
+    setFilteredItems(filtered)
+  }, [searchQuery, items, type])
+
   const fetchItems = async () => {
     try {
-      const response = await fetch(`/api/knowledge/${category}/${type}`)
+      const tableName = getTableName(type)
+      const response = await fetch(`/api/knowledge/${tableName}`)
       const result = await response.json()
 
       if (result.success) {
@@ -65,13 +115,14 @@ export function KnowledgeList({ type, category, onAddNew }: KnowledgeListProps) 
 
   useEffect(() => {
     fetchItems()
-  }, [type, category])
+  }, [type])
 
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this item?")) return
 
     try {
-      const response = await fetch(`/api/knowledge/${category}/${type}?id=${id}`, {
+      const tableName = getTableName(type)
+      const response = await fetch(`/api/knowledge/${tableName}?id=${id}`, {
         method: "DELETE",
       })
 
@@ -99,7 +150,8 @@ export function KnowledgeList({ type, category, onAddNew }: KnowledgeListProps) 
 
   const handleEditSave = async (updatedItem: any) => {
     try {
-      const response = await fetch(`/api/knowledge/${category}/${type}`, {
+      const tableName = getTableName(type)
+      const response = await fetch(`/api/knowledge/${tableName}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -173,9 +225,11 @@ export function KnowledgeList({ type, category, onAddNew }: KnowledgeListProps) 
                       <span>{item.metadata.wordCount} words</span>
                     </>
                   )}
-                  <Badge variant="outline" className="text-xs capitalize">
-                    {category}
-                  </Badge>
+                  {item.metadata?.company && (
+                    <Badge variant="outline" className="text-xs">
+                      {item.metadata.company}
+                    </Badge>
+                  )}
                 </div>
               </div>
               <div className="flex gap-2">
@@ -225,9 +279,6 @@ export function KnowledgeList({ type, category, onAddNew }: KnowledgeListProps) 
                   )}
                 </div>
                 <div className="flex gap-2 flex-wrap">
-                  <Badge variant="secondary" className="text-xs capitalize">
-                    {category}
-                  </Badge>
                   {item.metadata?.projectType && (
                     <Badge variant="secondary" className="text-xs">
                       <Tag className="h-3 w-3 mr-1" />
@@ -239,6 +290,11 @@ export function KnowledgeList({ type, category, onAddNew }: KnowledgeListProps) 
                       {tech}
                     </Badge>
                   ))}
+                  {item.metadata?.status && (
+                    <Badge variant="secondary" className="text-xs">
+                      {item.metadata.status}
+                    </Badge>
+                  )}
                 </div>
               </div>
               <div className="flex gap-2">
@@ -281,9 +337,6 @@ export function KnowledgeList({ type, category, onAddNew }: KnowledgeListProps) 
                   {formatDate(item.created_at)}
                 </div>
                 <div className="flex gap-2">
-                  <Badge variant="secondary" className="text-xs capitalize">
-                    {category}
-                  </Badge>
                   {item.metadata?.skillCategory && (
                     <Badge variant="secondary" className="text-xs">
                       <Tag className="h-3 w-3 mr-1" />
@@ -293,6 +346,11 @@ export function KnowledgeList({ type, category, onAddNew }: KnowledgeListProps) 
                   {item.metadata?.proficiencyLevel && (
                     <Badge variant="outline" className="text-xs">
                       {item.metadata.proficiencyLevel}
+                    </Badge>
+                  )}
+                  {item.metadata?.yearsOfExperience && (
+                    <Badge variant="secondary" className="text-xs">
+                      {item.metadata.yearsOfExperience} years
                     </Badge>
                   )}
                 </div>
@@ -337,7 +395,7 @@ export function KnowledgeList({ type, category, onAddNew }: KnowledgeListProps) 
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium text-white">
-          {config.title} ({items.length})
+          {config.title} ({filteredItems.length})
         </h3>
         <Button onClick={onAddNew} className="bg-white text-black hover:bg-gray-200">
           <Plus className="h-4 w-4 mr-2" />
@@ -345,18 +403,40 @@ export function KnowledgeList({ type, category, onAddNew }: KnowledgeListProps) 
         </Button>
       </div>
 
-      {items.length === 0 ? (
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Input
+          placeholder={`Search ${config.title.toLowerCase()}...`}
+          value={searchQuery}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setSearchQuery(e.target.value)
+          }
+          className="pl-10 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:border-gray-600"
+        />
+      </div>
+
+      {searchQuery && (
+        <div className="text-sm text-gray-400">
+          Found {filteredItems.length} result{filteredItems.length !== 1 ? "s" : ""} for "{searchQuery}"
+        </div>
+      )}
+
+      {filteredItems.length === 0 ? (
         <Card className="bg-gray-900 border-gray-700">
           <CardContent className="py-8 text-center">
-            <p className="text-gray-400 mb-4">{config.emptyMessage}</p>
-            <Button onClick={onAddNew} className="bg-white text-black hover:bg-gray-200">
-              <Plus className="h-4 w-4 mr-2" />
-              {config.addButtonText}
-            </Button>
+            <p className="text-gray-400 mb-4">
+              {searchQuery ? `No results found for "${searchQuery}"` : config.emptyMessage}
+            </p>
+            {!searchQuery && (
+              <Button onClick={onAddNew} className="bg-white text-black hover:bg-gray-200">
+                <Plus className="h-4 w-4 mr-2" />
+                {config.addButtonText}
+              </Button>
+            )}
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">{items.map(renderItem)}</div>
+        <div className="grid gap-4">{filteredItems.map(renderItem)}</div>
       )}
 
       {editingItem && (
