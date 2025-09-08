@@ -11,7 +11,7 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    const { jobTitle, jobDescription, clientName } = await request.json()
+    const { jobTitle, jobDescription, clientName, questions } = await request.json()
 
     if (!jobTitle?.trim() || !jobDescription?.trim()) {
       return NextResponse.json(
@@ -23,6 +23,7 @@ export async function POST(request: NextRequest) {
     console.log("🚀 Starting global RAG cover letter generation...")
     console.log("Job title:", jobTitle)
     console.log("Job description length:", jobDescription.length)
+    console.log("Questions provided:", questions?.length ? "Yes" : "No")
 
     // Step 1: Create combined embedding for received job title + job description
     let queryEmbedding: number[] = []
@@ -79,22 +80,21 @@ export async function POST(request: NextRequest) {
     console.log(`- Total matches: ${searchResults.totalMatches}`)
 
     // Step 3: Create comprehensive context for LLM
- // Step 3: Create comprehensive context for LLM
- 
-const context = {
-  jobExamples: searchResults.jobExamples,
-  projects: searchResults.projects,
-  skills: searchResults.skills,
-  hasKnowledgeBase: searchResults.totalMatches > 0,
-  totalMatches: searchResults.totalMatches,
-}
+    const context = {
+      jobExamples: searchResults.jobExamples,
+      projects: searchResults.projects,
+      skills: searchResults.skills,
+      hasKnowledgeBase: searchResults.totalMatches > 0,
+      totalMatches: searchResults.totalMatches,
+    }
 
     // Step 4: Generate cover letter with global RAG context
     const prompt = createPerfectRAGPrompt(
       jobTitle,
       jobDescription,
       context,
-      clientName  
+      clientName,
+      questions
     )
 
     if (!process.env.OPENAI_API_KEY) {
