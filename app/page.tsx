@@ -16,8 +16,10 @@ export default function ChatPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [clientName, setClientName] = useState("")
   const [jobTitle, setJobTitle] = useState("")
+  const [questions, setQuestions] = useState("")
   const { toast } = useToast()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const questionsTextareaRef = useRef<HTMLTextAreaElement>(null)
 
   // Auto-resize textarea based on content
   useEffect(() => {
@@ -27,6 +29,15 @@ export default function ChatPage() {
       textarea.style.height = `${textarea.scrollHeight}px` // Set to scroll height
     }
   }, [jobDescription])
+
+  // Auto-resize questions textarea based on content
+  useEffect(() => {
+    const textarea = questionsTextareaRef.current
+    if (textarea) {
+      textarea.style.height = "auto" // Reset height
+      textarea.style.height = `${textarea.scrollHeight}px` // Set to scroll height
+    }
+  }, [questions])
 
   const handleGenerate = async () => {
     if (!jobTitle.trim() || !jobDescription.trim()) {
@@ -51,6 +62,7 @@ export default function ChatPage() {
           jobTitle,
           jobDescription,
           clientName,
+          questions,
         }),
       })
 
@@ -162,6 +174,21 @@ export default function ChatPage() {
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
                 ref={textareaRef}
+                className="bg-black border-gray-700 text-white placeholder:text-gray-500 focus:border-gray-600 resize-none"
+                style={{ overflow: "hidden" }} // Hide scrollbar
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="questions" className="text-gray-300 text-sm">
+                Questions (Optional)
+              </Label>
+              <Textarea
+                id="questions"
+                placeholder="Enter your custom questions here (one per line)..."
+                value={questions}
+                onChange={(e) => setQuestions(e.target.value)}
+                ref={questionsTextareaRef}
                 className="bg-black border-gray-700 text-white placeholder:text-gray-500 focus:border-gray-600 resize-none"
                 style={{ overflow: "hidden" }} // Hide scrollbar
               />
