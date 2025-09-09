@@ -30,8 +30,39 @@ export function EditDialog({ type, item, onSave, onCancel }: EditDialogProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-    await onSave(formData)
+    
+    // Convert database field names to API field names before sending
+    const apiData = convertToApiFormat(formData, type)
+    
+    await onSave(apiData)
     setIsSubmitting(false)
+  }
+
+  // Convert database field names to API expected field names
+  const convertToApiFormat = (data: any, type: "r1" | "r2" | "r3") => {
+    switch (type) {
+      case "r1":
+        return {
+          id: data.id,
+          jobTitle: data.job_title,
+          jobDescription: data.job_description,
+          coverLetter: data.cover_letter
+        }
+      case "r2":
+        return {
+          id: data.id,
+          projectTitle: data.project_title,
+          projectDescription: data.project_description
+        }
+      case "r3":
+        return {
+          id: data.id,
+          skillName: data.skill_name,
+          skillDescription: data.skill_description
+        }
+      default:
+        return data
+    }
   }
 
   const getTitle = () => {
