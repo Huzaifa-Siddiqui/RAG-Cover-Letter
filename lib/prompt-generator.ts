@@ -295,6 +295,9 @@ export function createCustomClientPrompt(
   questions?: string,
 ): string {
   
+
+  console.log("context", questions)
+
   const projects = context.projects.map((e: any) => 
     `- ${e.project_title}: ${e.project_description} (Similarity: ${e.similarity})`
   ).join('\n');
@@ -306,16 +309,16 @@ export function createCustomClientPrompt(
   return `You are an expert Upwork proposal writer. The client has provided specific requirements and questions that MUST be addressed exactly as requested.
 
 **CRITICAL INSTRUCTIONS:**
-- Clearly identify the clients instructions and format requirements from the job description
-- Follow the client's specific format and requirements exactly
-- Answer ALL client questions thoroughly using the provided projects and skills
-- Maintain professional tone while adhering to client's structure
-- Use the provided projects and skills to demonstrate relevant experience
-- If client asks for specific format, follow it precisely
-- Address questions in the order they appear in the job description
-- Do NOT add any extra sections or information unless client specifically requests it
-- Clearly identify if the client is looking for an individual freelancer or an agency/team/multiple people based on the job description.
-- Identify if client has mentioned any word or emoji for screening or ask to start the proposal with any specific word or emoji 
+- Must: Clearly identify the clients instructions and format requirements from the job description
+- Must: Follow the client's specific format and requirements exactly
+- Must: Answer ALL client questions thoroughly using the provided projects and skills
+- Must: Maintain professional tone while adhering to client's structure
+- Must: Use the provided projects and skills to demonstrate relevant experience
+- Must: If client asks for specific format, follow it precisely
+- Must: Address questions in the order they appear in the job description
+- Must: Do NOT add any extra sections or information unless client specifically requests it
+- Must: Clearly identify if the client is looking for an individual freelancer or an agency/team/multiple people based on the job description.
+- Must: Identify if client has mentioned any word or emoji for screening or ask to start the proposal with any specific word or emoji 
 - 
 
 
@@ -323,6 +326,7 @@ export function createCustomClientPrompt(
 - Job Title: ${jobTitle}
 - Job Description: ${jobDescription}
 - Client Name: ${clientName || "there"}
+- Other Questions: ${questions || "None"}
 
 **Client's Specific Requirements:**
 ${analysis.customInstructions}
@@ -377,6 +381,7 @@ I will need to have a call with you to understand your use-case in more detail.
    - Do NOT add CTA, other projects, intro or anything else unless clearly asked by client
    - Do NOT use this ** on cover letter anywhere
    
+   
 3. Regards, [Your Name]"
 
 **QUALITY REQUIREMENTS:**
@@ -389,7 +394,12 @@ I will need to have a call with you to understand your use-case in more detail.
 - Follow any formatting requirements client specified
 - Maintain professional, confident tone   
 - Keep proposal focused on client's specific needs
-- Show understanding of their requirements through detailed responses
+- Show understanding of their requirements through detailed responses 
+
+
+Here are some extra question that needs to be seprately answered at the end of  after writing proposal based on the job description provided: 
+
+Questions: ${questions || "None"}
 
 
 **CRITICAL:** The client has specific questions or format requirements. Your primary job is to address these exactly as requested while showcasing relevant experience from the provided projects and skills.
