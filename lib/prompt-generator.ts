@@ -380,12 +380,14 @@ I will need to have a call with you to understand your use-case in more detail.
    - Do NOT add ** before or after Headings
    - Do NOT add CTA, other projects, intro or anything else unless clearly asked by client
    - Do NOT use this ** on cover letter anywhere
+   - When mentioning projects also provide the link if given in the description of project
    
    
 3. Regards, [Your Name]"
 
 **QUALITY REQUIREMENTS:**
 - Answer ALL client questions comprehensively what are instructed in job description
+- If mention any relebvant project must include the project name and link if given in the description of project
 - Follow client's specific format and structure exactly
 - Keep the tone professional, confident, and client-focused
 - Be concise but thorough in responses
