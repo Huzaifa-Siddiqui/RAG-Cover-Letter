@@ -242,7 +242,7 @@ Example to start(Dont copy opening line exact just take example from it): "One o
 - Analyze Job Details to determine if the client is seeking an agency, team, or multiple people versus an individual. 
   Then modify the CTA pronouns accordingly: Use 'We' for agencies/teams/multiple people, use 'I' for individual roles. Keep all other CTA content unchanged.
 
-8. Answer Client's Questions (if any):
+8. Make Sure To Strictly Answer all the Client's Questions:
 - Answer all client questions provided ${questions}, all questions should be answered separately. 
 - If the client has provided specific questions in the job post, answer them concisely at the end of the proposal.
 - Ensure answers are relevant and demonstrate your expertise.  
