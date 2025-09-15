@@ -306,6 +306,7 @@ export function createCustomClientPrompt(
   return `You are an expert Upwork proposal writer. The client has provided specific requirements and questions that MUST be addressed exactly as requested.
 
 **CRITICAL INSTRUCTIONS:**
+- Clearly identify the clients instructions and format requirements from the job description
 - Follow the client's specific format and requirements exactly
 - Answer ALL client questions thoroughly using the provided projects and skills
 - Maintain professional tone while adhering to client's structure
@@ -314,6 +315,9 @@ export function createCustomClientPrompt(
 - Address questions in the order they appear in the job description
 - Do NOT add any extra sections or information unless client specifically requests it
 - Clearly identify if the client is looking for an individual freelancer or an agency/team/multiple people based on the job description.
+- Identify if client has mentioned any word or emoji for screening or ask to start the proposal with any specific word or emoji 
+- 
+
 
 **Job Details:**
 - Job Title: ${jobTitle}
@@ -376,11 +380,14 @@ I will need to have a call with you to understand your use-case in more detail.
 3. Regards, [Your Name]"
 
 **QUALITY REQUIREMENTS:**
-- Answer ALL client questions comprehensively
+- Answer ALL client questions comprehensively what are instructed in job description
+- Follow client's specific format and structure exactly
+- Keep the tone professional, confident, and client-focused
+- Be concise but thorough in responses
 - Use specific project examples from the provided list
 - Demonstrate expertise through concrete examples
 - Follow any formatting requirements client specified
-- Maintain professional, confident tone
+- Maintain professional, confident tone   
 - Keep proposal focused on client's specific needs
 - Show understanding of their requirements through detailed responses
 
