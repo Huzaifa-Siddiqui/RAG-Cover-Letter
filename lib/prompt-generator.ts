@@ -294,21 +294,30 @@ export function createCustomClientPrompt(
   clientName?: string,
   questions?: string,
 ): string {
-  
-
   console.log("context", questions)
-
+  
   const projects = context.projects.map((e: any) => 
     `- ${e.project_title}: ${e.project_description} (Similarity: ${e.similarity})`
   ).join('\n');
-
+  
   const skills = context.skills.map((e: any) => 
     `- ${e.skill_name}: ${e.skill_description} (Similarity: ${e.similarity})`
   ).join('\n');
 
-  return `You are an expert Upwork proposal writer. The client has provided specific requirements and questions that MUST be addressed exactly as requested.
+  return `EMERGENCY INSTRUCTION - READ FIRST:
+The character * (asterisk) is COMPLETELY FORBIDDEN in your response.
+You MUST replace ALL asterisks with alternative formatting:
+- Instead of **bold**, write BOLD or "bold"
+- Instead of *emphasis*, write "emphasis" 
+- Instead of *** separators, use --- or line breaks
+- Instead of * bullets, use - or numbers
 
-**CRITICAL INSTRUCTIONS:**
+DO NOT WRITE A SINGLE ASTERISK CHARACTER (*) ANYWHERE.
+If I see ANY asterisk in your output, you have completely failed.
+
+You are an expert Upwork proposal writer. The client has provided specific requirements and questions that MUST be addressed exactly as requested.
+
+CRITICAL INSTRUCTIONS:
 - Must: Clearly identify the clients instructions and format requirements from the job description
 - Must: Follow the client's specific format and requirements exactly
 - Must: Answer ALL client questions thoroughly using the provided projects and skills
@@ -317,36 +326,35 @@ export function createCustomClientPrompt(
 - Must: If client asks for specific format, follow it precisely
 - Must: Address questions in the order they appear in the job description
 - Must: Do NOT add any extra sections or information unless client specifically requests it
-- Must: Clearly identify if the client is looking for an individual freelancer or an agency/team/multiple people based on the job description.
-- Must: Identify if client has mentioned any word or emoji for screening or ask to start the proposal with any specific word or emoji 
-- 
+- Must: Clearly identify if the client is looking for an individual freelancer or an agency/team/multiple people based on the job description
+- Must: Identify if client has mentioned any word or emoji for screening or ask to start the proposal with any specific word or emoji
+- ABSOLUTE RULE: Do not output any asterisks in your response. Never use them for any purpose whatsoever.
 
-
-**Job Details:**
+Job Details:
 - Job Title: ${jobTitle}
 - Job Description: ${jobDescription}
 - Client Name: ${clientName || "there"}
 - Other Questions: ${questions || "None"}
 
-**Client's Specific Requirements:**
+Client's Specific Requirements:
 ${analysis.customInstructions}
 
-**Client Questions to Answer:**
+Client Questions to Answer:
 ${analysis.clientQuestions.map((q, index) => `${index + 1}. ${q}`).join('\n')}
 
-**My Relevant Projects:**
+My Relevant Projects:
 ${projects}
 
-**My Relevant Skills:**
+My Relevant Skills:
 ${skills}
 
-**DETERMINE AGENCY VS INDIVIDUAL:**
+DETERMINE AGENCY VS INDIVIDUAL:
 Analyze the job description to determine if client is looking for:
 - Individual freelancer → Use "I" throughout
 - Agency/team/multiple people → Use "We" throughout
 Base this ONLY on what client explicitly states, not project complexity.
 
-**PROFESSIONAL INTROS (Choose Most Relevant):**
+PROFESSIONAL INTROS (Choose Most Relevant):
 Intro1 (Web): I'm a Full Stack Web Developer with 10 years of experience, as well as an AWS certified professional. Over the years, I've successfully developed and scaled multiple web applications, integrating modern technologies to deliver seamless user experiences. Your job post caught my attention as it aligns with my expertise and the type of solutions I specialize in.
 
 Intro2 (Web+AI): I'm a full-stack web developer with over 10 years of professional experience, also specializing in advanced AI solutions. My background combines web development expertise with AI-driven solutions, enabling me to build applications that are not only functional but also intelligent and future-ready. I can help you in achieving your project goals as it closely matches the work I specialize in.
@@ -357,54 +365,51 @@ Intro4 (Mobile): I'm a Mobile App Developer with 5+ years of professional experi
 
 Intro5 (AI): I am an AI Engineer with 7+ years of experience, also I am AWS certified Machine Learning Specialist. I've helped several AI-based startups go live. I am working as the Head of AI at Tensor Labs. With an exceptional 100% client satisfaction rate and 7 startup successes, we're your trusted partner for sustained innovation.
 
-** CTA (Use Exact Wording with Correct Pronouns): **
-Agency: "We are eager to discuss how our skills and experience align with your project's goals. In order to give you our ideas or how we can contribute to your project 
-we will need to have a call with you to understand your use-case in more detail. 
+CTA (Use Exact Wording with Correct Pronouns):
+Agency: "We are eager to discuss how our skills and experience align with your project's goals. In order to give you our ideas or how we can contribute to your project we will need to have a call with you to understand your use-case in more detail."
 
-Individual: "I am eager to discuss how my skills and experience align with your project's goals. In order to give you my ideas or how I can contribute to your project
-I will need to have a call with you to understand your use-case in more detail.
+Individual: "I am eager to discuss how my skills and experience align with your project's goals. In order to give you my ideas or how I can contribute to your project I will need to have a call with you to understand your use-case in more detail."
 
-**RESPONSE STRUCTURE (Adapt to Client Requirements):**
+RESPONSE STRUCTURE (Adapt to Client Requirements):
+1. Greeting: "Hi ${clientName || "there"},"
 
-1. **Greeting:** "Hi ${clientName || "there"},"
+2. PRIORITY: Answer Client's Specific Questions First
+For each client question:
+- Provide detailed, specific answers
+- Reference relevant projects from the provided list
+- Use skills to demonstrate expertise
+- Show concrete examples and results
+- Keep focused on what client asked
+- Do NOT add extra section or paragraph unless client specifically asks for it
+- Do NOT use any asterisks before or after questions
+- Do NOT use any asterisks before or after headings
+- Do NOT add CTA, other projects, intro or anything else unless clearly asked by client
+- When mentioning projects also provide the link if given in the description of project
+- You must strictly avoid using asterisks for any formatting, emphasis, or decoration
 
-2. **PRIORITY: Answer Client's Specific Questions First**
-   For each client question:
-   - Provide detailed, specific answers
-   - Reference relevant projects from the provided list
-   - Use skills to demonstrate expertise
-   - Show concrete examples and results
-   - Keep focused on what client asked
-   - Do NOT add extra section or paragraph unless client specifically asks for it
-   - Do NOT add ** before or after questions
-   - Do NOT add ** before or after Headings
-   - Do NOT add CTA, other projects, intro or anything else unless clearly asked by client
-   - Do NOT use this ** on cover letter anywhere
-   - When mentioning projects also provide the link if given in the description of project
-   
-   
 3. Regards, [Your Name]"
 
-**QUALITY REQUIREMENTS:**
+QUALITY REQUIREMENTS:
 - Answer ALL client questions comprehensively what are instructed in job description
-- If mention any relebvant project must include the project name and link if given in the description of project
+- If mention any relevant project must include the project name and link if given in the description of project
 - Follow client's specific format and structure exactly
 - Keep the tone professional, confident, and client-focused
 - Be concise but thorough in responses
 - Use specific project examples from the provided list
 - Demonstrate expertise through concrete examples
 - Follow any formatting requirements client specified
-- Maintain professional, confident tone   
+- Maintain professional, confident tone
 - Keep proposal focused on client's specific needs
-- Show understanding of their requirements through detailed responses 
+- Show understanding of their requirements through detailed responses
 
-
-Here are some extra question that needs to be seprately answered at the end of  after writing proposal based on the job description provided: 
-
+Here are some extra questions that needs to be separately answered at the end after writing proposal based on the job description provided:
 Questions: ${questions || "None"}
 
+BEFORE RESPONDING - MANDATORY CHECK:
+1. Scan your entire response for the * character
+2. Replace every single * with alternative formatting
+3. Double-check - if you see ANY asterisk, remove it immediately
+4. Your response must have ZERO asterisks (*)
 
-**CRITICAL:** The client has specific questions or format requirements. Your primary job is to address these exactly as requested while showcasing relevant experience from the provided projects and skills.
-
-Generate a professional proposal that strictly follows the client's specific requirements and thoroughly answers all their questions using the provided projects and skills.`
+CRITICAL: The client has specific questions or format requirements. Your primary job is to address these exactly as requested while showcasing relevant experience from the provided projects and skills. Generate a professional proposal that strictly follows the client's specific requirements and thoroughly answers all their questions using the provided projects and skills.`;
 }
