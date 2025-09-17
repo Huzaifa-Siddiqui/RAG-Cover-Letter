@@ -1,20 +1,32 @@
+// app/knowledge/page.tsx
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { Database } from "lucide-react"
+import { Database, Loader2 } from "lucide-react"
 import { KnowledgeList } from "@/components/knowledge-list"
 import { R1Form } from "@/components/r1-form"
 import { R2Form } from "@/components/r2-form"
 import { R3Form } from "@/components/r3-form"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useAuth } from "@/contexts/AuthContext"
+import { useRouter } from "next/navigation"
 
 export default function KnowledgePage() {
   const [activeTab, setActiveTab] = useState("r1")
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [addDialogType, setAddDialogType] = useState<"r1" | "r2" | "r3">("r1")
+  const { user, loading } = useAuth()
+  const router = useRouter()
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/')
+    }
+  }, [user, loading, router])
 
   const handleAddNew = (type: "r1" | "r2" | "r3") => {
     setAddDialogType(type)
@@ -48,6 +60,23 @@ export default function KnowledgePage() {
     }
   }
 
+  // Show loading state while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="flex items-center gap-2 text-white">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Loading...</span>
+        </div>
+      </div>
+    )
+  }
+
+  // Don't render if not authenticated
+  if (!user) {
+    return null
+  }
+
   return (
     <div className="min-h-screen bg-black">
       {/* Header */}
@@ -57,6 +86,9 @@ export default function KnowledgePage() {
           <div className="flex items-center gap-3">
             <Database className="h-6 w-6 text-white" />
             <h1 className="text-2xl font-light text-white">Knowledge Base</h1>
+          </div>
+          <div className="ml-auto text-sm text-gray-400">
+            Welcome, {user.email}
           </div>
         </div>
       </header>

@@ -1,3 +1,6 @@
+// components/app-sidebar.tsx
+"use client"
+
 import {
   Sidebar,
   SidebarContent,
@@ -8,14 +11,18 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
+  SidebarFooter,
 } from "@/components/ui/sidebar"
-import { MessageSquare, BookOpen, Brain } from 'lucide-react'
+import { MessageSquare, BookOpen, Brain, LogOut, User } from 'lucide-react'
 import Link from "next/link"
+import { useAuth } from "@/contexts/AuthContext"
+import { Button } from "@/components/ui/button"
+import { useToast } from "@/hooks/use-toast"
 
 const menuItems = [
   {
     title: "Chat",
-    url: "/",
+    url: "/chat",
     icon: MessageSquare,
   },
   {
@@ -26,6 +33,30 @@ const menuItems = [
 ]
 
 export function AppSidebar() {
+  const { user, signOut } = useAuth()
+  const { toast } = useToast()
+
+  const handleSignOut = async () => {
+    try {
+      await signOut()
+      toast({
+        title: "Signed out",
+        description: "You have been successfully signed out",
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to sign out",
+        variant: "destructive",
+      })
+    }
+  }
+
+  // Don't render sidebar if no user
+  if (!user) {
+    return null
+  }
+
   return (
     <Sidebar className="bg-black border-r border-gray-800">
       <SidebarHeader className="p-6 border-b border-gray-800">
@@ -37,6 +68,7 @@ export function AppSidebar() {
           </div>
         </div>
       </SidebarHeader>
+      
       <SidebarContent className="bg-black">
         <SidebarGroup>
           <SidebarGroupContent>
@@ -55,6 +87,24 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      
+      <SidebarFooter className="p-4 border-t border-gray-800">
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-sm text-gray-400 px-2">
+            <User className="h-4 w-4" />
+            <span className="truncate">{user.email}</span>
+          </div>
+          <Button
+            onClick={handleSignOut}
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start text-gray-300 hover:text-white hover:bg-gray-900"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign Out
+          </Button>
+        </div>
+      </SidebarFooter>
     </Sidebar>
   )
 }

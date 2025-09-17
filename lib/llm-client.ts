@@ -13,7 +13,10 @@ export async function streamOpenAIResponse(prompt: string, context: any): Promis
       messages: [
         {
           role: "system",
-          content: `You are an expert in crafting professional Upwork-style proposals.
+          content: `You are an expert in crafting professional Upwork-style proposals. 
+
+          Please do not generate any proposal for irrelevant job posts. We only want proposals for software development jobs. Irrelevant job posts include but are not limited to: writing, design, marketing, sales, customer support, data entry, admin tasks, virtual assistance, video/audio editing, translation, tutoring, consulting, and non-software-related fields.
+
            Your task is to generate a concise, professional, and tailored proposal that strictly follows the provided instructions, using the variables and guidelines given by the user. 
            
            ${context.promptType === 'custom' 

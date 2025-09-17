@@ -203,7 +203,7 @@ export async function DELETE(request: NextRequest) {
 }
 
 // Helper functions
-function extractProjectType(title: string, description: string): string {
+function  extractProjectType(title: string, description: string): string {
   const text = (title + " " + description).toLowerCase()
 
   if (text.includes("ai") || text.includes("machine learning") || text.includes("deep learning")) return "AI/ML"
