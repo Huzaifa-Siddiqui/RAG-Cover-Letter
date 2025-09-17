@@ -189,13 +189,12 @@ Regards,
 
 *** Instructions: Follow these exact 7 steps to write the proposal ***
 
-1. Start the cover letter by highlighting one most relevant project that matches the client's job description and industry. 
-Select the project based on the field: if the job is web-related, choose from web projects; if it is AI-related, 
-choose from AI projects; and if it involves both web and AI, choose from web + AI projects in the list of projects provided.
-In the introduction, mention the project category and use the exact project title as listed, 
-then rephrase the project description in your own words. Conclude with a one-sentence explanation of how this project is 
-directly relevant to the client's requirements and industry.
-Projects should be relevant to the jobDescription provided.
+1. Start the cover letter by highlighting the single most relevant project that aligns with the client’s job description and industry.
+- Select the project based on domain: if the job is web-related, pick from web projects; if AI-related, pick from AI projects; if it involves both, pick from combined web + AI projects.
+- If no most relevant project is found in the provided list of projects then create a realistic dummy project with a project title and description that best fits and 80% to 90% related to the job description and industry context.
+- In the introduction, clearly mention the project category and use the exact project title (or the dummy title if generated).
+- Rephrase the project description in natural, professional wording.
+- Conclude with a single sentence explaining how this project is directly relevant to the client’s requirements and industry.
 
 Example to start(Dont copy opening line exact just take example from it): "One of my/our most relevant projects is HealthAI Platform (https://healthai.tensorlabs.io/), a healthcare-focused AI system that analyzes patient data in real-time, aligning with your need for AI-driven healthcare solutions."
 
@@ -205,16 +204,16 @@ Example to start(Dont copy opening line exact just take example from it): "One o
 
 3. Brief Technical Approach:
 - Add this Static heading before the technical approach: "Technical approach:" but Do NOT add ** before or after the heading.
-- Summarize the specific technical stack, tools, and methods you will use to deliver the solution.
+- Summarize the specific technical stack, tools, and methods you will use to deliver the solution.f
 - Keep it concise but concrete, focusing on relevance to the client's project.
 
 4. Show 2–3 More Relevant Projects (One-Liner Each):
-- Add this Static heading before the other projects: "Other Projects:" but Do NOT add ** before or after the heading.
-- See all the fetched projects Pick 2–3 additional projects from list of projects similar to *** Job Details ***
-- Write one-liner descriptions including project name, link, and relevance.
-- Make sure these projects doesnot include the project that mentioned in intro already it shouldn't be same.
-- Only include relevant projects in the portfolio section. If fewer than three relevant projects are available, 
-  include only those relevant ones. Do not add irrelevant projects just to reach three projects
+- Add the static heading before listing: Other Projects: (no ** before or after).
+- From the fetched projects, choose 2–3 additional projects that are most similar and relevant to the job details.
+- Each should be a one-liner with project name, link, and a short note on its relevance.
+- Do not repeat the project already used in the introduction.
+- Only include relevant projects; if fewer than three exist, include only the relevant ones.
+- Do not generate or invent dummy projects in this section — only use the provided projects.
 
 5. Ask 3 Technical, Non-Generic Questions:
 - Add this Static heading before the questions: "To better understand your needs, I/We have few questions:" but Do NOT add ** before or after the heading.
