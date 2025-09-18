@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Loader2, Save, X } from "lucide-react"
 
 interface EditDialogProps {
@@ -16,6 +17,13 @@ interface EditDialogProps {
   onSave: (item: any) => void
   onCancel: () => void
 }
+
+const PROJECT_TYPES = [
+  { value: "Web", label: "Web" },
+  { value: "Mobile", label: "Mobile" },
+  { value: "Web + AI", label: "Web + AI" },
+  { value: "AI/ML", label: "AI/ML" },
+]
 
 export function EditDialog({ type, item, onSave, onCancel }: EditDialogProps) {
   const [formData, setFormData] = useState<any>({})
@@ -52,7 +60,8 @@ export function EditDialog({ type, item, onSave, onCancel }: EditDialogProps) {
         return {
           id: data.id,
           projectTitle: data.project_title,
-          projectDescription: data.project_description
+          projectDescription: data.project_description,
+          projectType: data.project_type || data.metadata?.projectType // Handle both direct field and metadata
         }
       case "r3":
         return {
@@ -130,6 +139,32 @@ export function EditDialog({ type, item, onSave, onCancel }: EditDialogProps) {
                 className="bg-black border-gray-700 text-white placeholder:text-gray-500 focus:border-gray-600"
               />
             </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="edit-project-type" className="text-gray-300 text-sm">
+                Project Type
+              </Label>
+              <Select 
+                value={formData.project_type || formData.metadata?.projectType || ""} 
+                onValueChange={(value) => setFormData({ ...formData, project_type: value })}
+              >
+                <SelectTrigger className="bg-black border-gray-700 text-white focus:border-gray-600">
+                  <SelectValue placeholder="Select project type" />
+                </SelectTrigger>
+                <SelectContent className="bg-black border-gray-700">
+                  {PROJECT_TYPES.map((type) => (
+                    <SelectItem 
+                      key={type.value} 
+                      value={type.value}
+                      className="text-white hover:bg-gray-800 focus:bg-gray-800"
+                    >
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="edit-project-description" className="text-gray-300 text-sm">
                 Project Description

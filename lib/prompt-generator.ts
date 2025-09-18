@@ -213,7 +213,7 @@ Example to start(Dont copy opening line exact just take example from it): "One o
 - Each should be a one-liner with project name, link, and a short note on its relevance.
 - Do not repeat the project already used in the introduction.
 - Only include relevant projects; if fewer than three exist, include only the relevant ones.
-- Do not generate or invent dummy projects in this section — only use the provided projects.
+- Do not generate or invent dummy projects in this section only use the provided projects.
 
 5. Ask 3 Technical, Non-Generic Questions:
 - Add this Static heading before the questions: "To better understand your needs, I/We have few questions:" but Do NOT add ** before or after the heading.
