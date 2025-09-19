@@ -191,8 +191,8 @@ Regards,
 
 1. Start the cover letter by highlighting the single most relevant project that aligns with the client’s job description and industry.
 - Select the project based on domain: if the job is web-related, pick from web projects; if AI-related, pick from AI projects; if it involves both, pick from combined web + AI projects.
-- If no most relevant project is found in the provided list of projects then create a realistic dummy project with a project title and description that best fits and 80% to 90% related to the job description and industry context.
-- In the introduction, clearly mention the project category and use the exact project title (or the dummy title if generated).
+- ONLY create a dummy project if the provided project list is completely empty or contains zero projects. If even a single project exists in the provided list, you must NEVER create any dummy projects and must use only the existing projects. The dummy project should have a title and description that is 80% to 90% related to the job description and industry context.
+- In the introduction, clearly mention the project category and use the exact project title and link/demo Video link provided in the project description.
 - Rephrase the project description in natural, professional wording.
 - Conclude with a single sentence explaining how this project is directly relevant to the client’s requirements and industry.
 
@@ -210,10 +210,13 @@ Example to start(Dont copy opening line exact just take example from it): "One o
 4. Show 2–3 More Relevant Projects (One-Liner Each):
 - Add the static heading before listing: Other Projects: (no ** before or after).
 - From the fetched projects, choose 2–3 additional projects that are most similar and relevant to the job details.
-- Each should be a one-liner with project name, link, and a short note on its relevance.
+- Each should be a one-liner with project name, link(If available in project description only otherwise there is no need to add self made links), and a short note on its relevance.
 - Do not repeat the project already used in the introduction.
 - Only include relevant projects; if fewer than three exist, include only the relevant ones.
 - Do not generate or invent dummy projects in this section — only use the provided projects.
+- Do not use the same project more than once in the cover letter. Each project from the provided list must be referenced only ONE TIME throughout the entire cover letter. 
+  If you mention a project title, description, or details in any section, that project is now used and cannot be referenced again in any other part of the cover letter. 
+  Ensure complete project uniqueness - no project duplication, repetition, or multiple mentions are allowed under any circumstances.
 
 5. Ask 3 Technical, Non-Generic Questions:
 - Add this Static heading before the questions: "To better understand your needs, I/We have few questions:" but Do NOT add ** before or after the heading.

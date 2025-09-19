@@ -45,8 +45,8 @@ export async function streamOpenAIResponse(prompt: string, context: any): Promis
   }
 
   const promptType = context.promptType || 'standard'
-  console.log(`🌊 Streaming ${promptType} cover letter with global knowledge base context...`)
-  console.log("📡 Making SECOND LLM API call for streaming response...")
+  console.log(` Streaming ${promptType} cover letter with global knowledge base context...`)
+  console.log(" Making SECOND LLM API call for streaming response...")
 
   // Stream the response
   const encoder = new TextEncoder()

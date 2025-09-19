@@ -132,7 +132,7 @@ async function hydrateJobExamplesWithCoverLetters(
       // Query Supabase using vector similarity search (cosine distance)
       const { data: rpcData, error } = await supabase.rpc('match_projects', {
         query_embedding: queryEmbedding,
-        match_threshold: 0.8, 
+        match_threshold: 0.7, 
         match_count: 10,
       })
 
