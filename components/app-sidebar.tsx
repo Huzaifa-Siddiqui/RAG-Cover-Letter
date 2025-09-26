@@ -6,14 +6,13 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar"
-import { MessageSquare, BookOpen, Brain, LogOut, User } from 'lucide-react'
+import { MessageSquare, BookOpen, Brain, LogOut, User, FileText } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
@@ -24,6 +23,11 @@ const menuItems = [
     title: "Chat",
     url: "/chat",
     icon: MessageSquare,
+  },
+  {
+    title: "PRD Generator",
+    url: "/prd",
+    icon: FileText,
   },
   {
     title: "Knowledge",
@@ -68,7 +72,7 @@ export function AppSidebar() {
           </div>
         </div>
       </SidebarHeader>
-      
+
       <SidebarContent className="bg-black">
         <SidebarGroup>
           <SidebarGroupContent>
@@ -87,7 +91,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      
+
       <SidebarFooter className="p-4 border-t border-gray-800">
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-sm text-gray-400 px-2">
