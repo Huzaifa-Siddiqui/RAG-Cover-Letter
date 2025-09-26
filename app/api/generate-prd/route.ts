@@ -104,10 +104,11 @@ User Inputs:
 - Other Text: ${userInputs.otherText}
 - List of Actors: ${userInputs.listOfActors}
 
-Example for Main Actors Section:
+Example for Main Actors Section: 
 2. Main Actors
 2.1. Admin
-● Role: The Admin is responsible for managing the overall system setup, user access,
+● Role: 
+The Admin is responsible for managing the overall system setup, user access,
 ontology integration and ensuring smooth operation of the platform. Admins configure
 
 domain settings, oversee data source connections and ensure secure and reliable
@@ -405,6 +406,7 @@ Write the PRD using a structured, hierarchical numbering system for all sections
  be written in title case (capitalize key words). After each heading, leave one line break before 
  the descriptive paragraph or list. Bulleted lists should use ● for items and ○ for sub-points. Avoid 
  using Markdown # symbols or plain ALL CAPS headings — only use the numbering format for headings.
+ DO NOT use ** or ## in the output.
 
 `
 

@@ -28,8 +28,10 @@ export async function streamOpenAIResponse(prompt: string, context: any): Promis
             Secondary bullets: Use ○ symbol with 25px indentation from margin
             Tertiary bullets: Use ■ symbol with 40px indentation from margin
 
-            **CRITICAL RULE**s: DO NOT use numbered lists (1., 2., 3.) anywhere except for main section headings. For all other lists, use the appropriate bullet symbols (●, ○, ■) based on hierarchy level and DON'T use (* #) in the headings.
-                    `,
+            **CRITICAL RULE**s: 
+            -DO NOT use numbered lists (1., 2., 3.) anywhere except for main section headings. For all other lists, use the appropriate bullet symbols (●, ○, ■) based on hierarchy level and DON'T use (* #) in the headings.
+            -DO NOT use ** or ## in the output. 
+            `,
         },
         {
           role: "user",

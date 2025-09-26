@@ -19,12 +19,12 @@ export async function POST(request: NextRequest) {
 
     // Add main heading "Project Requirement Document" centered at the top
     doc.setFont("helvetica", "bold")
-    doc.setFontSize(18)
+    doc.setFontSize(16)
     const mainTitle = "Project Requirement Document"
     const titleWidth = doc.getStringUnitWidth(mainTitle) * doc.getFontSize() / doc.internal.scaleFactor
     const titleX = (pageWidth - titleWidth) / 2
     doc.text(mainTitle, titleX, y)
-    y += lineHeight * 3 // Add space after main title
+    y += lineHeight * 3
 
     // Clean content (replace unsupported chars)
     const cleanContent = content
@@ -37,13 +37,17 @@ export async function POST(request: NextRequest) {
 
     // Split into lines
     const lines = cleanContent.split("\n")
+    let previousWasHeading = false
+    let previousWasBullet = false
+    let currentSectionLevel = 0
 
     for (let i = 0; i < lines.length; i++) {
       const rawLine = lines[i]
       const line = rawLine.trim()
       
+      // Handle blank lines - minimal spacing to match document style
       if (!line) {
-        y += lineHeight * 0.7 // Reduced spacing for blank lines
+        y += lineHeight * 0.3
         continue
       }
 
@@ -51,173 +55,188 @@ export async function POST(request: NextRequest) {
       const leadingSpaces = rawLine.length - rawLine.trimStart().length
       const indentLevel = Math.floor(leadingSpaces / 4)
 
-      // === ENHANCED HEADING DETECTION ===
-      // Main numbered sections (1., 2., 3., etc.) - Top level
-      const isMainSection = /^\d+\.\s/.test(line)
+      // === PRECISE HEADING DETECTION MATCHING PRD-29 ===
+      // Main numbered sections (1., 2., 3., etc.)
+      const isMainSection = /^(\d+)\.\s+(.+)$/.test(line) && indentLevel === 0
       
-      // Subsections (1.1., 1.2., 2.1., etc.) - Second level
-      const isSubSection = /^\d+\.\d+\.\s/.test(line)
+      // Subsections (1.1., 1.2., 2.1., etc.)
+      const isSubSection = /^(\d+)\.(\d+)\.\s+(.+)$/.test(line)
       
-      // Sub-subsections (1.1.1., 2.1.3., etc.) - Third level
-      const isSubSubSection = /^\d+\.\d+\.\d+\.\s/.test(line)
+      // Sub-subsections (1.1.1., 2.1.3., etc.)
+      const isSubSubSection = /^(\d+)\.(\d+)\.(\d+)\.\s+(.+)$/.test(line)
       
-      // Hash headings (# ## ### etc.)
-      const isHashHeading = /^#{1,6}\s/.test(line)
+      // Bold headers like **Role**, **Responsibilities**
+      const isBoldHeader = /^\*\*([^*]+)\*\*:\s*(.*)$/.test(line)
       
-      // All caps headings
-      const isAllCapsHeading = /^[A-Z][A-Z\s\d\-_:()]{2,}$/.test(line) && line.length < 100
-      
-      // Bold markdown headings
-      const isBoldHeading = /^\*\*.*\*\*$/.test(line)
-      
-      // Special section identifiers (like Role:, Description:, etc.)
-      const isSectionHeader = /^(Role|Description|Responsibilities|User Stories|Goals and Objectives|Requirements|Feature|Objective|Actors Involved|Preconditions|Main Flow|Postconditions|Key Components|Action Items|Duration|Summary|Next Steps|Use Cases|Features):/i.test(line)
+      // Plain section headers (Role:, Responsibilities:, etc.)
+      const isSectionHeader = /^(Role|Responsibilities|User Stories|Goals and Objectives|Use Cases|Features):\s*(.*)$/i.test(line)
 
-      const isAnyHeading = isMainSection || isSubSection || isSubSubSection || isHashHeading || isAllCapsHeading || isBoldHeading || isSectionHeader
+      const isAnyHeading = isMainSection || isSubSection || isSubSubSection || isBoldHeader || isSectionHeader
 
       // === BULLET POINT DETECTION ===
-      const isBullet = /^[•○●]\s/.test(line) || /^-\s/.test(line)
-      const isNumberedItem = /^\d+\.\s/.test(line) && !isMainSection && !isSubSection && !isSubSubSection
+      const isBullet = /^[•○●]\s/.test(line) || (/^-\s/.test(line) && !isAnyHeading)
 
       // Check for page break
-      if (y > pageHeight - margin - 10) {
+      if (y > pageHeight - margin - 15) {
         doc.addPage()
         y = margin
+        previousWasHeading = false
+        previousWasBullet = false
       }
 
       if (isAnyHeading) {
-        // Add spacing before headings (reduced spacing)
-        if (y > margin + (lineHeight * 2)) { // Account for main title space
-          if (isMainSection) {
-            y += lineHeight * 1.0 // Reduced from 1.5
-          } else if (isSubSection || isSubSubSection) {
-            y += lineHeight * 0.4 // Much smaller spacing for subsections
-          } else {
-            y += lineHeight * 1.0
-          }
-        }
+        // Determine section level for spacing
+        let sectionLevel = 0
+        if (isMainSection) sectionLevel = 1
+        else if (isSubSection) sectionLevel = 2
+        else if (isSubSubSection) sectionLevel = 3
+        else if (isBoldHeader || isSectionHeader) sectionLevel = 4
 
-        // Set font based on heading type
-        doc.setFont("helvetica", "bold")
-        
+        // Add spacing before headings - tight spacing like PRD-29
+        let spacingBefore = 0
         if (isMainSection) {
-          doc.setFontSize(14)
-          // No extra space before main sections since we handle it above
+          spacingBefore = previousWasHeading ? lineHeight * 1.0 : lineHeight * 1.5
         } else if (isSubSection) {
-          doc.setFontSize(12)
-          // No extra space before subsections since we handle it above
+          spacingBefore = previousWasHeading ? lineHeight * 0.7 : lineHeight * 1.0
         } else if (isSubSubSection) {
+          spacingBefore = previousWasHeading ? lineHeight * 0.5 : lineHeight * 0.8
+        } else if (isBoldHeader || isSectionHeader) {
+          spacingBefore = previousWasHeading ? lineHeight * 0.3 : lineHeight * 0.5
+        }
+
+        // Apply spacing
+        if (y > margin + (lineHeight * 3)) {
+          y += spacingBefore
+        }
+
+        // Set font based on heading type - matching PRD-29 exactly
+        doc.setFont("helvetica", "bold")
+        if (isMainSection) {
+          doc.setFontSize(12)
+        } else if (isSubSection) {
           doc.setFontSize(11)
-        } else if (isHashHeading) {
-          const hashCount = (line.match(/^#+/) || [''])[0].length
-          doc.setFontSize(16 - hashCount * 1.5)
-        } else if (isAllCapsHeading) {
-          doc.setFontSize(11)
-        } else if (isSectionHeader) {
+        } else if (isSubSubSection) {
           doc.setFontSize(10)
-        } else {
-          doc.setFontSize(12)
+        } else if (isBoldHeader || isSectionHeader) {
+          doc.setFontSize(10)
         }
 
-        // Clean up the line for display
+        // Clean up display line
         let displayLine = line
-        if (isHashHeading) {
-          displayLine = line.replace(/^#+\s*/, '')
-        } else if (isBoldHeading) {
-          displayLine = line.replace(/^\*\*(.*)\*\*$/, '$1')
+        if (isBoldHeader) {
+          displayLine = line.replace(/^\*\*([^*]+)\*\*:\s*(.*)$/, '$1: $2')
         }
 
-        // Apply proper indentation for subsections
-        let headingIndent = margin
-        if (isSubSection) {
-          headingIndent = margin + 8
-        } else if (isSubSubSection) {
-          headingIndent = margin + 16
-        } else if (isSectionHeader) {
-          headingIndent = margin + (indentLevel * 12)
-        }
+        // No indentation for headers - all align to margin like PRD-29
+        const headingIndent = margin
 
-        // Split text and render with word wrap
-        const wrapped = doc.splitTextToSize(displayLine, maxWidth - (headingIndent - margin))
+        // Split and render
+        const availableWidth = maxWidth
+        const wrapped = doc.splitTextToSize(displayLine, availableWidth)
         
-        for (const part of wrapped) {
-          if (y > pageHeight - margin) {
+        for (let j = 0; j < wrapped.length; j++) {
+          if (y > pageHeight - margin - 10) {
             doc.addPage()
             y = margin
           }
-          doc.text(part, headingIndent, y)
+          doc.text(wrapped[j], headingIndent, y)
           y += lineHeight
         }
         
-        // Add spacing after headings
-        if (isMainSection || isSubSection) {
-          y += lineHeight * 0.8
+        // Minimal spacing after headings - tight like PRD-29
+        if (isMainSection) {
+          y += lineHeight * 0.5
+        } else if (isSubSection) {
+          y += lineHeight * 0.3
+        } else if (isSubSubSection) {
+          y += lineHeight * 0.2
         } else {
-          y += lineHeight * 0.4
+          y += lineHeight * 0.2
         }
+        
+        previousWasHeading = true
+        previousWasBullet = false
+        currentSectionLevel = sectionLevel
         continue
       }
       
-      //  Bullet points and numbered items
-      else if (isBullet || isNumberedItem) {
+      // === BULLET POINTS ===
+      else if (isBullet) {
         doc.setFont("helvetica", "normal")
         doc.setFontSize(10)
 
-        // Calculate indent based on nesting level
-        const baseIndent = margin + 12 + (indentLevel * 12)
+        // Tight spacing before bullets - no extra space
+        if (!previousWasBullet && !previousWasHeading) {
+          y += lineHeight * 0.1
+        }
+
+        // Calculate indent - tight spacing like PRD-29
+        const baseIndent = margin + (indentLevel * 15)
         
         // Clean bullet symbol
         let bulletText = line
         if (isBullet) {
-          bulletText = line.replace(/^[•○●-]\s/, "• ")
+          bulletText = line.replace(/^[•○●-]\s*/, "• ")
         }
 
         const availableWidth = maxWidth - (baseIndent - margin)
         const wrapped = doc.splitTextToSize(bulletText, availableWidth)
         
         for (let j = 0; j < wrapped.length; j++) {
-          if (y > pageHeight - margin) {
+          if (y > pageHeight - margin - 10) {
             doc.addPage()
             y = margin
           }
           
-          // Hanging indent for continuation lines
-          const currentIndent = j === 0 ? baseIndent : baseIndent + 8
+          // Hanging indent for wrapped lines
+          const currentIndent = j === 0 ? baseIndent : baseIndent + 10
           doc.text(wrapped[j], currentIndent, y)
           y += lineHeight
         }
+        
+        // No extra spacing between bullets
+        previousWasHeading = false
+        previousWasBullet = true
         continue
       }
       
-      // === INDENTED TEXT (like under bullet points or subsections) ===
+      // === INDENTED TEXT ===
       else if (indentLevel > 0) {
         doc.setFont("helvetica", "normal")
         doc.setFontSize(10)
         
-        const textIndent = margin + (indentLevel * 12)
+        const textIndent = margin + (indentLevel * 15)
         const availableWidth = maxWidth - (textIndent - margin)
         const wrapped = doc.splitTextToSize(line, availableWidth)
         
         for (const part of wrapped) {
-          if (y > pageHeight - margin) {
+          if (y > pageHeight - margin - 10) {
             doc.addPage()
             y = margin
           }
           doc.text(part, textIndent, y)
           y += lineHeight
         }
+        
+        previousWasHeading = false
+        previousWasBullet = false
         continue
       }
       
-      // === NORMAL TEXT ===
+      // === NORMAL PARAGRAPH TEXT ===
       else {
         doc.setFont("helvetica", "normal")
         doc.setFontSize(10)
         
+        // Minimal paragraph spacing like PRD-29
+        if (!previousWasHeading && !previousWasBullet) {
+          y += lineHeight * 0.2
+        }
+        
         const wrapped = doc.splitTextToSize(line, maxWidth)
 
         for (const part of wrapped) {
-          if (y > pageHeight - margin) {
+          if (y > pageHeight - margin - 10) {
             doc.addPage()
             y = margin
           }
@@ -225,8 +244,11 @@ export async function POST(request: NextRequest) {
           y += lineHeight
         }
         
-        // Add small spacing after paragraphs
-        y += lineHeight * 0.2
+        // Minimal spacing after paragraphs
+        y += lineHeight * 0.1
+        
+        previousWasHeading = false
+        previousWasBullet = false
       }
     }
 
