@@ -41,8 +41,8 @@ export async function POST(request: NextRequest) {
             },
           ],
           stream: false,
-          max_tokens: 3000,
-          temperature: 0.7,
+          max_tokens: 10000,
+          temperature: 0.8,
         }),
       })
 
@@ -114,10 +114,11 @@ ontology integration and ensuring smooth operation of the platform. Admins confi
 domain settings, oversee data source connections and ensure secure and reliable
 performance.
 ● Responsibilities:
+
 ○ Assign and manage user roles and permissions (e.g., analyst, reviewer, domain
-expert).
-○ Control access to domain-specific data (Medical / Airlines).
-○ Enable or restrict access to the "Talk to Data" chat interface.
+expel access to domain-specific data (Medical / Airlines).
+○ Enable or rrt).
+○ Controestrict access to the "Talk to Data" chat interface.
 ○ Connect and configure PostgreSQL data sources.
 ○ Upload, manage and update domain-specific ontologies (e.g., SNOMED CT,
 IATA, OpenTravel).
@@ -125,7 +126,9 @@ IATA, OpenTravel).
 ○ Monitor system health, logs and performance.
 ○ Maintain the knowledge graph and RDF store.
 ○ Support data profiling and pipeline configuration.
+
 ● User Stories:
+
 ○ As an Admin, I want to add and manage users, so that I can control who has
 access to different parts of the system.
 ○ As an Admin, I want to control access to the chat interface, so only
@@ -146,7 +149,9 @@ data is safe and recoverable.
 ○ As an Admin, I want to assign domain-specific access, so that medical and
 airline data are only visible to relevant teams.
 
-Task: Generate a Main Actors section that describes each actor from the list, following the example's exact structure and headings.`,
+Task: Generate a Main Actors section that describes each actor from the list, make r=following the example's exact structure and headings, The number of roles and the number of user stories per actor should not be fixed or based only on the example, They should be generated dynamically allowing as many as can be created. They must be determined dynamically according to the actual user inputs.
+
+`,
 
       // 3rd API Call - Detailed Use Cases and Features Section
       `Generate a Detailed Use Cases and Features section of the PRD by following the theme, writing style, and presentation of the attached example EXACTLY. Copy the exact headings(Only main headings, sub headings should be written as per the requirements of the project) and structure.
@@ -360,8 +365,9 @@ into structured semantic knowledge. It will focus on two internal-use domains, M
 Airlines, and support the entire lifecycle from data profiling to intelligent semantic querying. The
 platform features a "Talk to Data" interface, empowering data analysts to consume insights and
 validate metadata pipelines.
+
 5.2. Next Steps
-● Review and Feedback:
+Review and Feedback:
 ○ Stakeholders will review the MVP requirements and user roles (Admin, DBA,
 Data Analyst) to ensure completeness.
 ○ Clarify open questions related to AI tagging confidence levels, chatbot interaction
@@ -369,7 +375,7 @@ flows and ontology mapping rules.
 ○ Discuss whether RDF outputs should be stored or generated dynamically, and
 review the integration of LLMs for the chat interface.
 
-● Validation:
+Validation:
 ○ Validate end-to-end flow: ingestion → profiling → tagging → ontology mapping →
 RDF generation → semantic querying.
 ○ Review accuracy of AI-generated tags and ontology matches, particularly in
@@ -378,7 +384,8 @@ high-stakes domains like medical data.
 queries using ontological reasoning.
 ○ Validate access control, data lineage, and feedback loop mechanisms for chatbot
 and pipeline outputs.
-● Proposal creation:
+
+Proposal creation:
 ○ Based on feedback and validation, a refined project proposal with technical
 details and milestones will be shared.
 
