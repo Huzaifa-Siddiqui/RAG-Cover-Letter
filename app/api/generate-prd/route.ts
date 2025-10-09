@@ -3,7 +3,7 @@ import { streamOpenAIResponse } from "@/lib/llm-client2"
 
 export async function POST(request: NextRequest) {
   try {
-    const { jobDescription, projectRequirements, otherText, listOfActors } = await request.json()
+    const { jobDescription, projectRequirements, otherText, listOfActors, includeQuestionsAssumptions } = await request.json()
 
     if (!jobDescription || !projectRequirements) {
       return new Response(JSON.stringify({ error: "Job description and project requirements are required" }), {
@@ -195,7 +195,7 @@ Example for Detailed Use Cases and Features section:
 ○ Monitor RDF triple generation from mapped metadata.
 ○ Validate graph consistency and ontology alignment.
 ○ Refresh or rebuild parts of the RDF knowledge graph if required.
-● Manage ‘Talk to Data’
+● Manage 'Talk to Data'
 ○ Configure and fine-tune chatbot behavior and response templates.
 ○ View chat logs and feedback from data analysts.
 ○ Flag or escalate chatbot errors or misleading insights.
@@ -283,8 +283,8 @@ IATA/OpenTravel for Airlines).
 3.4. Use cases for Data Analyst
 3.4.1 Use Cases:
 ● Conversational Data Exploration (Talk to Data)
-○ Ask questions in natural language through the chatbot (e.g., “Show me top 5
-delayed flights last week”).
+○ Ask questions in natural language through the chatbot (e.g., "Show me top 5
+delayed flights last week").
 ○ Receive answers in plain English, backed by semantic reasoning and SPARQL
 queries.
 ○ Request clarifications or rephrase questions when the chatbot response is
@@ -322,10 +322,12 @@ knowledge.
 ● Access only authorized data based on pre-defined domain scope (Medical or Airlines).
 
 Task: Generate a comprehensive Detailed Use Cases and Features section following the example's exact format and headings and make sure to write detailed Use Cases and Features for all provided List of Actors:`,
+    ]
 
-     
-// 4th API Call - Open Questions and Assumptions Section
-      `Generate an Open Questions and Assumptions section of the PRD by following the writing style and presentation of the attached example EXACTLY. Copy the exact headings and structure.
+    // Conditionally add the 4th API call for Open Questions and Assumptions
+    if (includeQuestionsAssumptions) {
+      prompts.push(
+        `Generate an Open Questions and Assumptions section of the PRD by following the writing style and presentation of the attached example EXACTLY. Copy the exact headings and structure.
 
 User Inputs:
 - Job Description: ${userInputs.jobDescription}
@@ -344,11 +346,12 @@ systems?
 6. Are there plans to extend the ontology support beyond SNOMED CT and
 OpenTravel/IATA?
 
-Task: Generate an Open Questions and Assumptions section that identifies key uncertainties and assumptions, following the example's exact structure.`,
+Task: Generate an Open Questions and Assumptions section that identifies key uncertainties and assumptions, following the example's exact structure.`
+      )
+    }
 
-  
-
-// 5th API Call - Summary and Next Steps Section
+    // Always add the Summary and Next Steps section
+    prompts.push(
       `Generate a Summary and Next Steps section of the PRD by following the writing style and presentation of the attached example EXACTLY. Copy the exact headings(Only main headings, sub headings should be written as per the requirements of the project) and structure.
 
 User Inputs:
@@ -389,22 +392,37 @@ Proposal creation:
 ○ Based on feedback and validation, a refined project proposal with technical
 details and milestones will be shared.
 
-Task: Generate a Summary and Next Steps section that provides clear action items and timeline, following the example's exact headings(Only main headings, sub headings should be written as per the requirements of the project).`,
-    ]
+Task: Generate a Summary and Next Steps section that provides clear action items and timeline, following the example's exact headings(Only main headings, sub headings should be written as per the requirements of the project).`
+    )
 
     const sectionResults = await Promise.all(prompts.map((prompt) => getStreamingText(prompt)))
 
-    const [overview, mainActors, detailedUseCases, openQuestions, summaryNextSteps] = sectionResults
+    // Destructure based on whether we have the optional section
+    let overview, mainActors, detailedUseCases, openQuestions, summaryNextSteps
+    
+    if (includeQuestionsAssumptions) {
+      [overview, mainActors, detailedUseCases, openQuestions, summaryNextSteps] = sectionResults
+    } else {
+      [overview, mainActors, detailedUseCases, summaryNextSteps] = sectionResults
+      openQuestions = "" // Empty string if not included
+    }
 
     // Final PRD Compilation with streaming response
-    const finalCompilationPrompt = `Combine all the written sections into a full PRD document. Maintain the EXACT structure and formatting from the original examples. Keep the plain text formatting that matches the example structure.
-
-Sections to combine:
-1. Overview: ${overview}
+    const sectionsToCompile = includeQuestionsAssumptions
+      ? `1. Overview: ${overview}
 2. Main Actors: ${mainActors}
 3. Detailed Use Cases and Features: ${detailedUseCases}
 4. Open Questions and Assumptions: ${openQuestions}
-5. Summary and Next Steps: ${summaryNextSteps}
+5. Summary and Next Steps: ${summaryNextSteps}`
+      : `1. Overview: ${overview}
+2. Main Actors: ${mainActors}
+3. Detailed Use Cases and Features: ${detailedUseCases}
+4. Summary and Next Steps: ${summaryNextSteps}`
+
+    const finalCompilationPrompt = `Combine all the written sections into a full PRD document. Maintain the EXACT structure and formatting from the original examples. Keep the plain text formatting that matches the example structure.
+
+Sections to combine:
+${sectionsToCompile}
 
 Task: Create a cohesive, well-formatted PRD document that flows naturally between sections with the same headings and structure as the examples. Remove any markdown symbols and maintain plain text formatting.
 Output PRD Format:
