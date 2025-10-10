@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText, Loader2, Download } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 
 export default function PRDPage() {
@@ -22,6 +23,7 @@ export default function PRDPage() {
   const [actors, setActors] = useState<string[]>([])
   const [isGeneratingActors, setIsGeneratingActors] = useState(false)
   const [newActor, setNewActor] = useState("")
+  const [includeQuestionsAssumptions, setIncludeQuestionsAssumptions] = useState(true)
   const { toast } = useToast()
 
   // Refs for auto-resizing textareas
@@ -29,9 +31,6 @@ export default function PRDPage() {
   const projectRequirementsRef = useRef<HTMLTextAreaElement>(null) as React.RefObject<HTMLTextAreaElement>
   const otherTextRef = useRef<HTMLTextAreaElement>(null) as React.RefObject<HTMLTextAreaElement>
   const listOfActorsRef = useRef<HTMLTextAreaElement>(null) as React.RefObject<HTMLTextAreaElement>
-
-  // const { user, loading } = useAuth()
-  // const router = useRouter()
 
   // Auto-resize textareas based on content
   useEffect(() => {
@@ -115,7 +114,7 @@ export default function PRDPage() {
           projectRequirements,
           otherText,
           listOfActors,
-          // userId: user?.id,
+          includeQuestionsAssumptions,
         }),
       })
 
@@ -392,7 +391,7 @@ export default function PRDPage() {
 
         <div className="space-y-2">
   <div className="flex items-center justify-between">
-    <Label htmlFor="list-of-actors" className="text-sm">
+    <Label htmlFor="list-of-actors" className="text-gray-300 text-sm">
       List of Actors
     </Label>
     <Button
@@ -416,18 +415,18 @@ export default function PRDPage() {
     </Button>
   </div>
 
-          <div className="border rounded-md p-2 min-h-[56px] w-full overflow-hidden">
+          <div className="border rounded-md p-2 min-h-[56px] w-full overflow-hidden bg-black border-gray-700">
             <div className="flex flex-wrap gap-2 w-full">
               {actors.map((actor) => (
                 <span
                   key={actor}
-                  className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs bg-muted text-foreground shrink-0"
+                  className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs bg-gray-800 text-gray-200 shrink-0"
                 >
                   {actor}
                   <button
                     type="button"
                     aria-label={`Remove ${actor}`}
-                    className="hover:text-destructive"
+                    className="hover:text-red-400"
                     onClick={() => removeActor(actor)}
                   >
                     <X className="h-3.5 w-3.5" />
@@ -447,7 +446,7 @@ export default function PRDPage() {
                   }
                 }}
                 placeholder="Type an actor and press Enter..."
-                className="h-7 flex-1 min-w-[150px] max-w-full border-0 focus-visible:ring-0"
+                className="h-7 flex-1 min-w-[150px] max-w-full border-0 focus-visible:ring-0 bg-transparent text-white"
               />
             </div>
           </div>
@@ -473,6 +472,22 @@ export default function PRDPage() {
             readOnly
           />
         </div>
+
+            {/* Checkbox for including Questions and Assumptions */}
+            <div className="flex items-center space-x-2 py-2">
+              <Checkbox
+                id="include-questions"
+                checked={includeQuestionsAssumptions}
+                onCheckedChange={(checked) => setIncludeQuestionsAssumptions(checked === true)}
+              />
+              <Label
+                htmlFor="include-questions"
+                className="text-gray-300 text-sm font-normal cursor-pointer"
+              >
+                Include "Open Questions and Assumptions" section
+              </Label>
+            </div>
+
             <Button onClick={handleGeneratePRD} disabled={isGenerating} className="w-full font-medium py-3">
               {isGenerating ? (
                 <>
