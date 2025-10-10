@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { jsPDF } from "jspdf"
+import fs from "fs"
+import path from "path"
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +17,74 @@ export async function POST(request: NextRequest) {
     const margin = 20
     const maxWidth = pageWidth - margin * 2
     const lineHeight = 6
-    let y = margin
+    
+    // Load header and footer images and calculate their heights
+    let headerImageData = null
+    let footerImageData = null
+    let headerHeight = 25 // Default fallback
+    let footerHeight = 20 // Default fallback
+    
+    try {
+      const headerPath = path.join(process.cwd(), "public", "Header.png")
+      const footerPath = path.join(process.cwd(), "public", "Footer.png")
+      
+      const headerBuffer = fs.readFileSync(headerPath)
+      const footerBuffer = fs.readFileSync(footerPath)
+      
+      headerImageData = `data:image/png;base64,${headerBuffer.toString("base64")}`
+      footerImageData = `data:image/png;base64,${footerBuffer.toString("base64")}`
+      
+      // Get image dimensions from PNG buffer
+      const getImageDimensions = (buffer: Buffer) => {
+        // PNG signature check
+        if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) {
+          // IHDR chunk starts at byte 16
+          const width = buffer.readUInt32BE(16)
+          const height = buffer.readUInt32BE(20)
+          return { width, height }
+        }
+        return null
+      }
+      
+      const headerDimensions = getImageDimensions(headerBuffer)
+      const footerDimensions = getImageDimensions(footerBuffer)
+      
+      // Calculate height to maintain aspect ratio at full page width
+      if (headerDimensions) {
+        const headerAspectRatio = headerDimensions.height / headerDimensions.width
+        headerHeight = pageWidth * headerAspectRatio
+      }
+      
+      if (footerDimensions) {
+        const footerAspectRatio = footerDimensions.height / footerDimensions.width
+        footerHeight = pageWidth * footerAspectRatio
+      }
+    } catch (err) {
+      console.error("Error loading header/footer images:", err)
+    }
+    
+    // Header and footer configuration
+    const contentMarginTop = headerHeight + 2 // 2mm spacing below header
+    const contentMarginBottom = footerHeight // No extra spacing above footer
+    
+    let y = contentMarginTop
+
+    // Function to add header and footer to current page
+    const addHeaderFooter = () => {
+      if (headerImageData) {
+        // Position header higher to eliminate top gap (extends slightly beyond page)
+        const headerY = -8 // Adjust -5 to push header up
+        doc.addImage(headerImageData, "PNG", 0, headerY, pageWidth, headerHeight)
+      }
+      if (footerImageData) {
+        // Position footer lower to eliminate bottom gap (extends slightly beyond page)
+        const footerY = pageHeight - footerHeight + 10 // Adjust +5 to push footer down
+        doc.addImage(footerImageData, "PNG", 0, footerY, pageWidth, footerHeight)
+      }
+    }
+
+    // Add header and footer to first page
+    addHeaderFooter()
 
     // Add main heading "Project Requirement Document" centered at the top
     doc.setFont("helvetica", "bold")
@@ -76,10 +145,11 @@ export async function POST(request: NextRequest) {
       // === BULLET POINT DETECTION ===
       const isBullet = /^[•○●]\s/.test(line) || (/^-\s/.test(line) && !isAnyHeading)
 
-      // Check for page break
-      if (y > pageHeight - margin - 15) {
+      // Check for page break - adjusted for header/footer with tighter threshold
+      if (y > pageHeight - contentMarginBottom + 10) {
         doc.addPage()
-        y = margin
+        addHeaderFooter() // Add header and footer to new page
+        y = contentMarginTop
         previousWasHeading = false
         previousWasBullet = false
       }
@@ -105,7 +175,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Apply spacing
-        if (y > margin + (lineHeight * 3)) {
+        if (y > contentMarginTop + (lineHeight * 3)) {
           y += spacingBefore
         }
 
@@ -135,9 +205,10 @@ export async function POST(request: NextRequest) {
         const wrapped = doc.splitTextToSize(displayLine, availableWidth)
         
         for (let j = 0; j < wrapped.length; j++) {
-          if (y > pageHeight - margin - 10) {
+          if (y > pageHeight - contentMarginBottom + 10) {
             doc.addPage()
-            y = margin
+            addHeaderFooter() // Add header and footer to new page
+            y = contentMarginTop
           }
           doc.text(wrapped[j], headingIndent, y)
           y += lineHeight
@@ -183,9 +254,10 @@ export async function POST(request: NextRequest) {
         const wrapped = doc.splitTextToSize(bulletText, availableWidth)
         
         for (let j = 0; j < wrapped.length; j++) {
-          if (y > pageHeight - margin - 10) {
+          if (y > pageHeight - contentMarginBottom + 10) {
             doc.addPage()
-            y = margin
+            addHeaderFooter() // Add header and footer to new page
+            y = contentMarginTop
           }
           
           // Hanging indent for wrapped lines
@@ -210,9 +282,10 @@ export async function POST(request: NextRequest) {
         const wrapped = doc.splitTextToSize(line, availableWidth)
         
         for (const part of wrapped) {
-          if (y > pageHeight - margin - 10) {
+          if (y > pageHeight - contentMarginBottom + 10) {
             doc.addPage()
-            y = margin
+            addHeaderFooter() // Add header and footer to new page
+            y = contentMarginTop
           }
           doc.text(part, textIndent, y)
           y += lineHeight
@@ -236,9 +309,10 @@ export async function POST(request: NextRequest) {
         const wrapped = doc.splitTextToSize(line, maxWidth)
 
         for (const part of wrapped) {
-          if (y > pageHeight - margin - 10) {
+          if (y > pageHeight - contentMarginBottom + 10) {
             doc.addPage()
-            y = margin
+            addHeaderFooter() // Add header and footer to new page
+            y = contentMarginTop
           }
           doc.text(part, margin, y)
           y += lineHeight

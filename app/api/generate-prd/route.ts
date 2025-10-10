@@ -417,7 +417,7 @@ Task: Generate a Summary and Next Steps section that provides clear action items
       : `1. Overview: ${overview}
 2. Main Actors: ${mainActors}
 3. Detailed Use Cases and Features: ${detailedUseCases}
-4. Summary and Next Steps: ${summaryNextSteps}`
+4. Summary and Next Steps: ${summaryNextSteps} and there sub headings should as 4.1 and 4.2 respectively.` 
 
     const finalCompilationPrompt = `Combine all the written sections into a full PRD document. Maintain the EXACT structure and formatting from the original examples. Keep the plain text formatting that matches the example structure.
 
@@ -442,5 +442,5 @@ Write the PRD using a structured, hierarchical numbering system for all sections
       status: 500,
       headers: { "Content-Type": "application/json" },
     })
-  }
+  } 
 }
